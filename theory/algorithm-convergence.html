@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Algorithm convergence · Theory detail</title>
+  <meta name="description"
+    content="Detailed summary of the appendix proof connecting the single critic to the decoupled iteration and establishing population and statistical convergence." />
+  <link rel="stylesheet" href="../assets/site.css" />
+  <script defer src="../assets/site.js"></script>
+  <script>
+    window.MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] }, svg: { fontCache: 'global' } };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+
+<body>
+  <header class="header">
+    <div class="topbar">
+      <a class="brand" href="../index.html"><span class="dot"></span><span>Continuous-Time RL</span></a>
+      <nav class="primary-nav">
+        <a href="../index.html">Home</a>
+        <a href="../formulation.html">Formulation</a>
+        <a href="../algorithm.html">Algorithm</a>
+        <div class="nav-dropdown">
+          <a href="../theory.html" class="nav-dropdown-toggle">Theory</a>
+          <div class="nav-dropdown-menu">
+            <a href="value-convergence.html">Value convergence</a>
+            <a href="q-convergence.html">q-convergence</a>
+            <a href="algorithm-convergence.html">Algorithm convergence</a>
+            <a href="random-time-and-regret.html">Random time &amp; regret</a>
+          </div>
+        </div>
+        <a href="../experiments.html">Experiments</a>
+        <a href="../gallery.html">Gallery</a>
+      </nav>
+      <a class="github-btn" href="https://github.com/mpnguyen2/ct-rl">GitHub</a>
+    </div>
+  </header>
+
+  <div class="page-shell">
+    <main class="content">
+      <article class="article">
+        <h2 id="algo-page">Algorithm convergence</h2>
+        <p class="section-lead">
+          We close the loop between the abstract decoupled theory and the practical critic update used in CT-SAC and
+          CT-TD3. The algorithm is not merely inspired by the theory, but that the
+          single-critic recursion is an algebraic rewriting of the $(V_k,q_k)$ iteration. Once that equivalence is
+          established, the algorithmic convergence theorem follows by combining the earlier value-convergence and
+          $q$-convergence results, and the statistical corollary follows from a one-step regression error recursion.
+        </p>
+
+        <section class="theory-hero" aria-label="Algorithm convergence roadmap">
+          <div class="theory-hero-grid">
+            <div>
+              <h3 style="margin-top:0;">Proof roadmap</h3>
+              <p>
+                The argument proceeds in 4 steps. First, rewrite the decoupled $(V_k,q_k)$ iteration as a
+                single-critic update. Next, prove that the decomposition $Q_k=V_k+q_k$ is preserved across
+                iterations. Then transfer the value and rate convergence bounds to the critic itself.
+                Finally, control the learned critic with a regression-error recursion around the analytic update.
+              </p>
+            </div>
+
+            <svg class="proof-roadmap" viewBox="0 0 560 310" xmlns="http://www.w3.org/2000/svg" role="img"
+              aria-label="Roadmap for the algorithm convergence proof">
+              <defs>
+                <linearGradient id="ag1" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#eff6ff" />
+                  <stop offset="100%" stop-color="#dbeafe" />
+                </linearGradient>
+                <linearGradient id="ag2" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#f5f3ff" />
+                  <stop offset="100%" stop-color="#ede9fe" />
+                </linearGradient>
+              </defs>
+
+              <!-- top row -->
+              <rect x="20" y="24" width="160" height="92" rx="18" fill="url(#ag1)" stroke="#93c5fd" />
+              <text x="100" y="53" text-anchor="middle" font-size="14" font-weight="700" fill="#1f2937">Single-critic
+                step</text>
+              <text x="100" y="78" text-anchor="middle" font-size="13" fill="#334155">Rewrite the decoupled</text>
+              <text x="100" y="96" text-anchor="middle" font-size="13" fill="#334155">update as one critic map</text>
+
+              <rect x="200" y="24" width="150" height="92" rx="18" fill="url(#ag2)" stroke="#c4b5fd" />
+              <text x="275" y="53" text-anchor="middle" font-size="14" font-weight="700" fill="#1f2937">Induction
+                lemma</text>
+              <text x="275" y="78" text-anchor="middle" font-size="13" fill="#334155">Preserve the relation</text>
+              <text x="275" y="96" text-anchor="middle" font-size="13" fill="#334155">$Q_k=V_k+q_k$</text>
+
+              <rect x="370" y="24" width="170" height="92" rx="18" fill="#f8fafc" stroke="#cbd5e1" />
+              <text x="455" y="53" text-anchor="middle" font-size="14" font-weight="700" fill="#1f2937">Analytic
+                limit</text>
+              <text x="455" y="78" text-anchor="middle" font-size="13" fill="#334155">Combine value and rate</text>
+              <text x="455" y="96" text-anchor="middle" font-size="13" fill="#334155">bounds to control $Q_k$</text>
+
+              <!-- bottom row -->
+              <rect x="110" y="180" width="165" height="92" rx="18" fill="#f8fafc" stroke="#cbd5e1" />
+              <text x="192.5" y="209" text-anchor="middle" font-size="14" font-weight="700" fill="#1f2937">Finite-sample
+                step</text>
+              <text x="192.5" y="234" text-anchor="middle" font-size="13" fill="#334155">Regression around the</text>
+              <text x="192.5" y="252" text-anchor="middle" font-size="13" fill="#334155">population operator</text>
+
+              <rect x="305" y="180" width="175" height="92" rx="18" fill="#ecfeff" stroke="#67e8f9" />
+              <text x="392.5" y="209" text-anchor="middle" font-size="14" font-weight="700" fill="#1f2937">Statistical
+                recursion</text>
+              <text x="392.5" y="234" text-anchor="middle" font-size="13" fill="#334155">Accumulate one-step</text>
+              <text x="392.5" y="252" text-anchor="middle" font-size="13" fill="#334155">regression errors</text>
+
+              <!-- arrows -->
+              <path d="M180 70 H200" stroke="#64748b" stroke-width="2.2" fill="none" />
+              <path d="M350 70 H370" stroke="#64748b" stroke-width="2.2" fill="none" />
+              <path d="M455 116 V150 H192.5 V180" stroke="#64748b" stroke-width="2.2" fill="none" />
+              <path d="M275 226 H305" stroke="#64748b" stroke-width="2.2" fill="none" />
+            </svg>
+          </div>
+        </section>
+
+        <div class="theorem-card">
+          <h3 style="margin-top:0;">Main statements</h3>
+          <p>
+            <strong>Analytic theorem.</strong> Under the exact update defined by the single-critic target,
+            $Q_k$ converges to the optimal critic
+            $Q^{(\alpha)} = V^{(\alpha)} + q_{V^{(\alpha)}}$.
+          </p>
+          <p>
+            <strong>Statistical corollary.</strong> If enough samples are used in each regression step, then the learned
+            critic
+            $\hat Q_k$ tracks the exact iterate closely enough that, for any $\epsilon,\delta&gt;0$, one can reach an
+            iterate $L$
+            with $\mathbb E[|Q_L(X,A)-Q^{(\alpha)}(X,A)|^2] &lt; \epsilon$ with probability at least $1-\delta$.
+          </p>
+        </div>
+
+        <h3 id="from-vq">1. From the decoupled iteration to a single critic</h3>
+        <p>
+          We begin by fixing an algorithmic flow step $\tau&gt;0$ and a holding time $u&gt;0$, with
+          $\gamma=e^{-\beta u}$. For a value function $V$, recall the finite-horizon rate
+        </p>
+        <div class="math-block">$$q_V^u(x,a)=\frac{\gamma\,\mathbb E_x^a[V(X_u)]-V(x)}{u}+r(x,a),$$</div>
+        <p>
+          or equivalently, with $\Delta_u V(x,a):=\gamma\,\mathbb E_x^a[V(X_u)]-V(x)$,
+        </p>
+        <div class="math-block">$$q_V^u(x,a)=\frac{\Delta_u V(x,a)}{u}+r(x,a).$$</div>
+        <p>
+          Suppose the decoupled scheme updates the value through the Hamiltonian-flow step
+        </p>
+        <div class="math-block">$$V_{k+1}(x)=V_k(x)+\tau\,\mathcal Q^{(\alpha)}(q_k)(x),$$</div>
+        <p>
+          and then refreshes the rate via
+        </p>
+        <div class="math-block">$$q_{k+1}(x,a)=\frac{\gamma\,\mathbb E_x^a[V_{k+1}(X_u)]-V_{k+1}(x)}{u}+r(x,a).$$</div>
+        <p>
+          Defining the numerical critic by $Q_k(x,a):=V_k(x)+q_k(x,a)$, we prove a lemma showing that
+          this pairwise update induces exactly the single-critic recursion used in the algorithm. Therefore, the
+          practical critic target is, in fact, the algebraic form of the decoupled theory.
+        </p>
+
+        <h3 id="closed-form">2. The closed-form critic update</h3>
+        <p>
+          Writing $\tilde Q_k(x,a):=Q_k(x,a)-\alpha\log\pi_k(a\mid x)$ and using the Boltzmann policy
+          $\pi_k(a\mid x)\propto \exp(Q_k(x,a)/\alpha)$, the resulting single-critic update is
+        </p>
+        <div class="math-block">$$
+          \begin{aligned}
+          Q_{k+1}(x,a)
+          &= (1-\tau)Q_k(x,a)
+          + \tau r(x,a)
+          + \tau\,\mathbb E_{a\sim\pi_k(\cdot\mid x)}\big[\tilde Q_k(x,a)\big]\\
+          &\quad + \tau\,\frac{\gamma\,\mathbb E_{a'\sim\pi_k(\cdot\mid X_u)}\big[\tilde Q_k(X_u,a')\big]
+          - \mathbb E_{a\sim\pi_k(\cdot\mid x)}\big[\tilde Q_k(x,a)\big]}{u}.
+          \end{aligned}
+          $$</div>
+        <p>
+          This is exactly the continuous-time critic update in the main algorithm. The derivation proceeds by first
+          rewriting the
+          value update in terms of $\tilde Q_k$, substituting that into the definition of $q_{k+1}$, rearranging terms,
+          and then
+          adding $V_{k+1}$ back to recover $Q_{k+1}=V_{k+1}+q_{k+1}$.
+        </p>
+
+        <h3 id="induction">3. Preservation of the decomposition</h3>
+        <p>
+          The next lemma is an induction argument. Assume the initialization satisfies the finite-horizon relation
+          $q_0=q_{V_0}^u$ and define $Q_0:=V_0+q_0$. If $(V_k,q_k)$ are generated by the decoupled update and $Q_k$ by
+          the
+          single-critic update above, then for every $k\ge 0$,
+        </p>
+        <div class="math-block">$$Q_k(x,a)=V_k(x)+q_k(x,a).$$</div>
+        <p>
+          This is crucial because it allows the convergence proof to continue in the $(V,q)$ world while still
+          concluding a theorem
+          for the practical single critic. The algorithm never leaves the theoretical decomposition even though it is
+          implemented
+          with one network.
+        </p>
+
+        <h3 id="population">4. Analytic convergence of the critic</h3>
+        <p>
+          Once the decomposition is preserved, the error with respect to the optimal critic splits cleanly as:
+        </p>
+        <div class="math-block">$$Q_k-Q^{(\alpha)}=(V_k-V^{(\alpha)})+(q_k-q_{V^{(\alpha)}}).$$</div>
+        <p>
+          Taking the sup-norm and applying the triangle inequality gives:
+        </p>
+        <div class="math-block">$$\|Q_k-Q^{(\alpha)}\|_\infty \le \|V_k-V^{(\alpha)}\|_\infty +
+          \|q_k-q_{V^{(\alpha)}}\|_\infty.$$</div>
+        <p>
+          The first term is controlled by the value-convergence theorem, and the second by the $q$-convergence theorem.
+          Therefore, the single critic inherits convergence directly from the two earlier components. Hence, the
+          practical CT-SAC / CT-TD3 critic remains faithful to the continuous-time fixed point
+          $Q^{(\alpha)}=V^{(\alpha)}+q_{V^{(\alpha)}}$.
+        </p>
+
+        <h3 id="stat-ingredients">5. Statistical ingredients for the learned critic</h3>
+        <p>
+          The statistical extension introduces the learned critic $\hat Q_k$, produced by neural regression against the
+          population target operator $\mathcal F_{\tau,u}$. At iteration $k$, one draws i.i.d. transition samples and
+          fits the next critic by minimizing empirical regression loss. We then invoke standard
+          learning-theoretic tools: Rademacher complexity, Lipschitz contraction for losses, and high-probability
+          generalization bounds for bounded neural-network classes. These ingredients yield a one-step statistical error
+          term of the form:
+        </p>
+        <div class="math-block">$$\mathrm{stat}_k:=\|\hat Q_{k+1}-\mathcal F_{\tau,u}(\hat Q_k)\|_{L^2(\nu)},$$</div>
+        <p>
+          Together with the usual high-probability estimate:
+        </p>
+        <div class="math-block">$$\mathrm{stat}_k \lesssim \frac{1}{\sqrt{n_k}}\Big(1+\sqrt{\log
+          d}+\sqrt{\log(1/\delta)}\Big).$$</div>
+        <p> Hence, the critic regression error can be made arbitrarily small by increasing the batch size at each
+          iteration.</p>
+
+        <h3 id="operator-lipschitz">6. Lipschitz stability of the critic operator</h3>
+        <p>
+          A second ingredient is that, when the policy is treated as fixed during the policy-evaluation comparison, the
+          mapping $\mathcal F_{\tau,u}$ is Lipschitz in $L^2(\nu)$:
+        </p>
+        <div class="math-block">$$\|\mathcal F_{\tau,u}(Q)-\mathcal F_{\tau,u}(Q')\|_{L^2(\nu)} \le
+          \Big(1+\frac{\tau}{u}\Big)\|Q-Q'\|_{L^2(\nu)}.$$</div>
+        <p>
+          This bound comes from the affine structure of the update and Jensen's inequality for the policy-averaged
+          terms. This allows one to propagate one-step regression errors across iterations.
+        </p>
+
+        <h3 id="stat-recursion">7. Statistical recursion and final corollary</h3>
+        <p>
+          Define the tracking error between the learned and exact critics by:
+        </p>
+        <div class="math-block">$$\epsilon_k^{(2)}:=\|\hat Q_k-Q_k\|_{L^2(\nu)}.$$</div>
+        <p>
+          Then we derive the recursion:
+        </p>
+        <div class="math-block">$$\epsilon_{k+1}^{(2)} \le \mathrm{stat}_k +
+          \Big(1+\frac{\tau}{u}\Big)\epsilon_k^{(2)}.$$</div>
+        <p>
+          Unrolling this recursion shows that if the sequence of one-step regression errors is chosen small enough, then
+          the total learned-to-exact gap remains small at the target iteration $L$. Combining this with the already
+          established analytic convergence of $Q_L$ to $Q^{(\alpha)}$ yields the main statistical conclusion:
+        </p>
+        <div class="math-block">$$\|\hat Q_L-Q^{(\alpha)}\|_{L^2(\nu)} \le
+          \underbrace{\|Q_L-Q^{(\alpha)}\|_{L^2(\nu)}}_{\text{algorithmic error}} + \underbrace{\|\hat
+          Q_L-Q_L\|_{L^2(\nu)}}_{\text{statistical error}},$$</div>
+        <p>
+          and each of the two terms can be made smaller than $\epsilon/2$. This proves the corollary.
+        </p>
+
+        <h3 id="interpretation">8. Final interpretation</h3>
+        <p> The value-convergence and $q$-convergence pages establish the analytic behavior of the decoupled flow. This
+          page shows that the actual implemented critic is
+          exactly the same object, written in single-critic form, and that finite-sample learning does not break the
+          link as long as regression errors are controlled. In that sense, we gave a full chain from
+          continuous-time stochastic control, to decoupled $(V,q)$ theory, to the critic used in CT-SAC and CT-TD3, to a
+          statistical convergence statement for the learned network.
+        </p>
+      </article>
+    </main>
+
+    <aside class="quicklinks">
+      <h3>On this page</h3>
+      <ul>
+        <li><a href="#from-vq">From $(V,q)$ to $Q$</a></li>
+        <li><a href="#closed-form">Closed-form critic update</a></li>
+        <li><a href="#induction">Induction lemma</a></li>
+        <li><a href="#population">Analytic convergence</a></li>
+        <li><a href="#stat-ingredients">Statistical ingredients</a></li>
+        <li><a href="#operator-lipschitz">Operator Lipschitz bound</a></li>
+        <li><a href="#stat-recursion">Statistical recursion</a></li>
+        <li><a href="#interpretation">Final interpretation</a></li>
+      </ul>
+    </aside>
+  </div>
+
+</body>
+
+</html>

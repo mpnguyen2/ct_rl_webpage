@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">Theory roadmap</title>
+  <desc id="desc">Minimal theory roadmap with extra spacing between text and visual elements.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="760" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0B1220"/>
+      <stop offset="1" stop-color="#101828"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="14" stdDeviation="16" flood-color="#020617" flood-opacity="0.35"/>
+    </filter>
+    <linearGradient id="topBox" x1="300" y1="90" x2="900" y2="250" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0F172A"/>
+      <stop offset="1" stop-color="#111827"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="760" rx="28" fill="url(#bg)"/>
+
+  <!-- top main box -->
+  <g filter="url(#shadow)">
+    <rect x="300" y="86" width="600" height="206" rx="28" fill="url(#topBox)" stroke="#334155" stroke-width="1.5"/>
+    <text x="600" y="132" text-anchor="middle" fill="#E5E7EB" font-size="30" font-family="Inter, Arial, sans-serif" font-weight="700">Flow-based iteration</text>
+
+    <!-- icons row moved down -->
+    <circle cx="470" cy="194" r="34" fill="#172554" stroke="#60A5FA" stroke-width="3"/>
+    <text x="470" y="202" text-anchor="middle" fill="#DBEAFE" font-size="18" font-family="Inter, Arial, sans-serif" font-weight="700">Φ</text>
+
+    <circle cx="600" cy="194" r="34" fill="#2E1065" stroke="#A78BFA" stroke-width="3"/>
+    <text x="600" y="202" text-anchor="middle" fill="#E9D5FF" font-size="18" font-family="Inter, Arial, sans-serif" font-weight="700">T</text>
+
+    <circle cx="730" cy="194" r="34" fill="#052E2B" stroke="#34D399" stroke-width="3"/>
+    <text x="730" y="202" text-anchor="middle" fill="#D1FAE5" font-size="18" font-family="Inter, Arial, sans-serif" font-weight="700">q</text>
+
+    <line x1="505" y1="194" x2="565" y2="194" stroke="#64748B" stroke-width="4" stroke-linecap="round"/>
+    <line x1="635" y1="194" x2="695" y2="194" stroke="#64748B" stroke-width="4" stroke-linecap="round"/>
+
+    <!-- bottom labels with more gap -->
+    <text x="470" y="252" text-anchor="middle" fill="#BFDBFE" font-size="15" font-family="Inter, Arial, sans-serif">semigroup</text>
+    <text x="600" y="252" text-anchor="middle" fill="#DDD6FE" font-size="15" font-family="Inter, Arial, sans-serif">value flow</text>
+    <text x="730" y="252" text-anchor="middle" fill="#A7F3D0" font-size="15" font-family="Inter, Arial, sans-serif">rate estimate</text>
+  </g>
+
+  <!-- center branch stem with more gap -->
+  <line x1="600" y1="292" x2="600" y2="378" stroke="#475569" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="600" cy="378" r="7" fill="#94A3B8"/>
+
+  <!-- result cards -->
+  <g filter="url(#shadow)">
+    <rect x="88" y="462" width="232" height="126" rx="22" fill="#0F172A" stroke="#3B82F6"/>
+    <text x="204" y="513" text-anchor="middle" fill="#E5E7EB" font-size="24" font-family="Inter, Arial, sans-serif" font-weight="700">Value</text>
+    <text x="204" y="546" text-anchor="middle" fill="#93C5FD" font-size="16" font-family="Inter, Arial, sans-serif">convergence</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="356" y="462" width="232" height="126" rx="22" fill="#0F172A" stroke="#8B5CF6"/>
+    <text x="472" y="513" text-anchor="middle" fill="#E5E7EB" font-size="24" font-family="Inter, Arial, sans-serif" font-weight="700">q</text>
+    <text x="472" y="546" text-anchor="middle" fill="#C4B5FD" font-size="16" font-family="Inter, Arial, sans-serif">convergence</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="612" y="462" width="232" height="126" rx="22" fill="#0F172A" stroke="#10B981"/>
+    <text x="728" y="513" text-anchor="middle" fill="#E5E7EB" font-size="24" font-family="Inter, Arial, sans-serif" font-weight="700">Algorithm</text>
+    <text x="728" y="546" text-anchor="middle" fill="#6EE7B7" font-size="16" font-family="Inter, Arial, sans-serif">convergence</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="880" y="462" width="232" height="126" rx="22" fill="#0F172A" stroke="#F59E0B"/>
+    <text x="996" y="513" text-anchor="middle" fill="#E5E7EB" font-size="24" font-family="Inter, Arial, sans-serif" font-weight="700">Random time</text>
+    <text x="996" y="546" text-anchor="middle" fill="#FCD34D" font-size="16" font-family="Inter, Arial, sans-serif">and regret</text>
+  </g>
+
+  <!-- separate branch lines ending well above cards -->
+  <line x1="600" y1="378" x2="204" y2="428" stroke="#3B82F6" stroke-width="4" stroke-linecap="round"/>
+  <line x1="600" y1="378" x2="472" y2="428" stroke="#8B5CF6" stroke-width="4" stroke-linecap="round"/>
+  <line x1="600" y1="378" x2="728" y2="428" stroke="#10B981" stroke-width="4" stroke-linecap="round"/>
+  <line x1="600" y1="378" x2="996" y2="428" stroke="#F59E0B" stroke-width="4" stroke-linecap="round"/>
+
+  <circle cx="204" cy="428" r="5" fill="#60A5FA"/>
+  <circle cx="472" cy="428" r="5" fill="#A78BFA"/>
+  <circle cx="728" cy="428" r="5" fill="#34D399"/>
+  <circle cx="996" cy="428" r="5" fill="#F59E0B"/>
+</svg>

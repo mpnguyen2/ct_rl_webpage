@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gallery · Continuous-Time RL</title>
+  <meta name="description" content="Qualitative figures and full video galleries for trading and control tasks." />
+  <link rel="stylesheet" href="assets/site.css" />
+  <script defer src="assets/site.js"></script>
+</head>
+
+<body>
+  <header class="header">
+    <div class="topbar">
+      <a class="brand" href="index.html"><span class="dot"></span><span>Continuous-Time RL</span></a>
+      <nav class="primary-nav">
+        <a href="index.html">Home</a>
+        <a href="formulation.html">Formulation</a>
+        <a href="algorithm.html">Algorithm</a>
+
+        <div class="nav-dropdown">
+          <a href="theory.html" class="nav-dropdown-toggle">Theory</a>
+          <div class="nav-dropdown-menu">
+            <a href="theory/value-convergence.html">Value convergence</a>
+            <a href="theory/q-convergence.html">q-convergence</a>
+            <a href="theory/algorithm-convergence.html">Algorithm convergence</a>
+            <a href="theory/random-time-and-regret.html">Random time &amp; regret</a>
+          </div>
+        </div>
+
+        <a href="experiments.html">Experiments</a>
+        <a href="gallery.html">Gallery</a>
+      </nav>
+      <a class="github-btn" href="https://github.com/mpnguyen2/ct-rl">Codebase</a>
+    </div>
+  </header>
+
+  <div class="page-shell">
+    <main class="content">
+      <article class="article section-stack">
+        <h2 id="gallery-overview">Gallery</h2>
+        <div class="callout">
+          <strong>What you will find here.</strong>
+          Trading qualitative plots and videos, irregular-time control images and videos, and regular-time transfer
+          media for policies trained under irregular decision times.
+        </div>
+
+        <h3 id="trading-gallery">Trading</h3>
+        <p>Qualitative results for the trading environment, including single-policy rollouts and direct comparisons
+          between CT-SAC and competitive baselines.</p>
+
+        <details class="accordion" open>
+          <summary>Trading qualitative figures</summary>
+          <br />
+          <div class="gallery-card">
+            <h4>CT-SAC</h4>
+            <img class="media-embed-full" src="assets/images/additional/trading_ct_sac.png"
+              alt="CT-SAC qualitative trading visualization."
+              style="width:min(70%, 760px); display:block; margin:0.75rem auto 0; height:auto;" />
+            <div class="caption">CT-SAC qualitative trading visualization.</div>
+          </div>
+          <br />
+          <div class="gallery-card">
+            <h4>SAC</h4>
+            <img class="media-embed-full" src="assets/images/additional/trading_sac.png"
+              alt="SAC qualitative trading visualization."
+              style="width:min(70%, 760px); display:block; margin:0.75rem auto 0; height:auto;" />
+            <div class="caption">SAC qualitative trading visualization.</div>
+          </div>
+          <br />
+          <div class="gallery-card">
+            <h4>CPPO</h4>
+            <img class="media-embed-full" src="assets/images/additional/trading_cppo.png"
+              alt="CPPO qualitative trading visualization."
+              style="width:min(70%, 760px); display:block; margin:0.75rem auto 0; height:auto;" />
+            <div class="caption">CPPO qualitative trading visualization.</div>
+          </div>
+        </details>
+
+        <details class="accordion" open>
+          <summary>Trading videos</summary>
+          <br />
+          <div class="media-panel">
+            <h4>CT-SAC vs SAC</h4>
+            <video class="media-embed-full" controls preload="metadata">
+              <source src="assets/media/trading_ct_sac_vs_sac.mp4" type="video/mp4" />
+            </video>
+            <div class="caption">Side-by-side comparison between CT-SAC and SAC.</div>
+          </div>
+          <br />
+          <div class="media-panel">
+            <h4>CT-SAC vs CPPO</h4>
+            <video class="media-embed-full" controls preload="metadata">
+              <source src="assets/media/trading_ct_sac_vs_cppo.mp4" type="video/mp4" />
+            </video>
+            <div class="caption">Side-by-side comparison between CT-SAC and CPPO.</div>
+          </div>
+        </details>
+
+        <h3 id="irregular-control">Irregular-time control</h3>
+        <p>Qualitative control results under the same irregular-time setting used in training and evaluation. The static
+          images summarize trajectories, while the videos show representative rollout behavior.</p>
+
+        <details class="accordion" open>
+          <summary>Irregular-time qualitative figures</summary>
+          <br />
+          <div class="gallery-card">
+            <h4>Our method against continuous-time baselines on Cheetah</h4><img class="media-embed-full"
+              src="assets/images/additional/irregular/cheetah-run_ct_sac_vs_continuous_top_last.png"
+              alt="Cheetah irregular-time continuous baselines." />
+            <div class="caption">Cheetah under irregular timing against continuous-time baselines.</div>
+          </div>
+          <br />
+          <div class="gallery-card">
+            <h4>Our method against discrete-time baselines on Cheetah</h4><img class="media-embed-full"
+              src="assets/images/additional/irregular/cheetah-run_ct_sac_vs_discrete_top_last.png"
+              alt="Cheetah irregular-time discrete baselines." />
+            <div class="caption">Cheetah under irregular timing against discrete-time baselines.</div>
+          </div>
+          <br />
+          <div class="gallery-card">
+            <h4>Our method against continuous-time baselines on Walker</h4><img class="media-embed-full"
+              src="assets/images/additional/irregular/walker-run_ct_sac_vs_continuous_top_last.png"
+              alt="Walker irregular-time continuous baselines." />
+            <div class="caption">Walker under irregular timing against continuous-time baselines.</div>
+          </div>
+          <br />
+          <div class="gallery-card">
+            <h4>Our method against discrete-time baselines on Walker</h4><img class="media-embed-full"
+              src="assets/images/additional/irregular/walker-run_ct_sac_vs_discrete_top_last.png"
+              alt="Walker irregular-time discrete baselines." />
+            <div class="caption">Walker under irregular timing against discrete-time baselines.</div>
+          </div>
+          <br />
+          <div class="gallery-card">
+            <h4>Our method against continuous-time baselines on Humanoid</h4><img class="media-embed-full"
+              src="assets/images/additional/irregular/humanoid-walk_ct_sac_vs_continuous_top_last.png"
+              alt="Humanoid irregular-time continuous baselines." />
+            <div class="caption">Humanoid under irregular timing against continuous-time baselines.</div>
+          </div>
+          <br />
+          <div class="gallery-card">
+            <h4>Our method against discrete-time baselines on Humanoid</h4><img class="media-embed-full"
+              src="assets/images/additional/irregular/humanoid-walk_ct_sac_vs_discrete_top_last.png"
+              alt="Humanoid irregular-time discrete baselines." />
+            <div class="caption">Humanoid under irregular timing against discrete-time baselines.</div>
+          </div>
+          <br />
+          <div class="gallery-card">
+            <h4>Our method against continuous-time baselines on Quadruped</h4><img class="media-embed-full"
+              src="assets/images/additional/irregular/quadruped-run_ct_sac_vs_continuous_top_last.png"
+              alt="Quadruped irregular-time continuous baselines." />
+            <div class="caption">Quadruped under irregular timing against continuous-time baselines.</div>
+          </div>
+          <br />
+          <div class="gallery-card">
+            <h4>Our method against discrete-time baselines on Quadruped</h4><img class="media-embed-full"
+              src="assets/images/additional/irregular/quadruped-run_ct_sac_vs_discrete_top_last.png"
+              alt="Quadruped irregular-time discrete baselines." />
+            <div class="caption">Quadruped under irregular timing against discrete-time baselines.</div>
+          </div>
+        </details>
+
+        <details class="accordion" open>
+          <summary>Irregular-time qualitative videos</summary>
+          <br />
+          <div class="media-panel">
+            <h4>Our method against continuous-time baselines on Cheetah</h4>
+            <video class="media-embed-full" controls preload="metadata">
+              <source src="assets/media/cheetah-run_ct_sac_vs_continuous_top.mp4" type="video/mp4" />
+            </video>
+            <div class="caption">Irregular-time evaluation on Cheetah against continuous-time baselines.</div>
+          </div>
+          <br />
+          <div class="media-panel">
+            <h4>Our method against discrete-time baselines on Cheetah</h4>
+            <video class="media-embed-full" controls preload="metadata">
+              <source src="assets/media/cheetah-run_ct_sac_vs_discrete_top.mp4" type="video/mp4" />
+            </video>
+            <div class="caption">Irregular-time evaluation on Cheetah against discrete-time baselines.</div>
+          </div>
+          <br />
+          <div class="media-panel">
+            <h4>Our method against continuous-time baselines on Walker</h4>
+            <video class="media-embed-full" controls preload="metadata">
+              <source src="assets/media/walker-run_ct_sac_vs_continuous_top.mp4" type="video/mp4" />
+            </video>
+            <div class="caption">Irregular-time evaluation on Walker against continuous-time baselines.</div>
+          </div>
+          <br />
+          <div class="media-panel">
+            <h4>Our method against discrete-time baselines on Walker</h4>
+            <video class="media-embed-full" controls preload="metadata">
+              <source src="assets/media/walker-run_ct_sac_vs_discrete_top.mp4" type="video/mp4" />
+            </video>
+            <div class="caption">Irregular-time evaluation on Walker against discrete-time baselines.</div>
+          </div>
+          <br />
+          <div class="media-panel">
+            <h4>Our method against continuous-time baselines on Humanoid</h4>
+            <video class="media-embed-full" controls preload="metadata">
+              <source src="assets/media/humanoid-walk_ct_sac_vs_continuous_top.mp4" type="video/mp4" />
+            </video>
+            <div class="caption">Irregular-time evaluation on Humanoid against continuous-time baselines.</div>
+          </div>
+          <br />
+          <div class="media-panel">
+            <h4>Our method against discrete-time baselines on Humanoid</h4>
+            <video class="media-embed-full" controls preload="metadata">
+              <source src="assets/media/humanoid-walk_ct_sac_vs_discrete_top.mp4" type="video/mp4" />
+            </video>
+            <div class="caption">Irregular-time evaluation on Humanoid against discrete-time baselines.</div>
+          </div>
+          <br />
+          <div class="media-panel">
+            <h4>Our method against continuous-time baselines on Quadruped</h4>
+            <video class="media-embed-full" controls preload="metadata">
+              <source src="assets/media/quadruped-run_ct_sac_vs_continuous_top.mp4" type="video/mp4" />
+            </video>
+            <div class="caption">Irregular-time evaluation on Quadruped against continuous-time baselines.</div>
+          </div>
+          <br />
+          <div class="media-panel">
+            <h4>Our method against discrete-time baselines on Quadruped</h4>
+            <video class="media-embed-full" controls preload="metadata">
+              <source src="assets/media/quadruped-run_ct_sac_vs_discrete_top.mp4" type="video/mp4" />
+            </video>
+            <div class="caption">Irregular-time evaluation on Quadruped against discrete-time baselines.</div>
+          </div>
+        </details>
+
+        <details class="accordion" open>
+          <summary>Regular-time qualitative figures</summary>
+          <br />
+          <div class="gallery-card">
+            <h4>Our method against continuous-time baselines on Cheetah</h4>
+            <img class="media-embed-full"
+              src="assets/images/additional/regular/cheetah-run_ct_sac_vs_continuous_regular_last.png"
+              alt="Cheetah regular-time continuous baselines." />
+            <div class="caption">Regular-time evaluation on Cheetah after irregular-time training, against
+              continuous-time baselines.</div>
+          </div>
+          <br />
+          <div class="gallery-card">
+            <h4>Our method against discrete-time baselines on Cheetah</h4>
+            <img class="media-embed-full"
+              src="assets/images/additional/regular/cheetah-run_ct_sac_vs_discrete_regular_last.png"
+              alt="Cheetah regular-time discrete baselines." />
+            <div class="caption">Regular-time evaluation on Cheetah after irregular-time training, against discrete-time
+              baselines.</div>
+          </div>
+          <br />
+          <div class="gallery-card">
+            <h4>Our method against continuous-time baselines on Walker</h4>
+            <img class="media-embed-full"
+              src="assets/images/additional/regular/walker-run_ct_sac_vs_continuous_regular_last.png"
+              alt="Walker regular-time continuous baselines." />
+            <div class="caption">Regular-time evaluation on Walker after irregular-time training, against
+              continuous-time baselines.</div>
+          </div>
+          <br />
+          <div class="gallery-card">
+            <h4>Our method against discrete-time baselines on Walker</h4>
+            <img class="media-embed-full"
+              src="assets/images/additional/regular/walker-run_ct_sac_vs_discrete_regular_last.png"
+              alt="Walker regular-time discrete baselines." />
+            <div class="caption">Regular-time evaluation on Walker after irregular-time training, against discrete-time
+              baselines.</div>
+          </div>
+          <br />
+          <div class="gallery-card">
+            <h4>Our method against continuous-time baselines on Humanoid</h4>
+            <img class="media-embed-full"
+              src="assets/images/additional/regular/humanoid-walk_ct_sac_vs_continuous_regular_last.png"
+              alt="Humanoid regular-time continuous baselines." />
+            <div class="caption">Regular-time evaluation on Humanoid after irregular-time training, against
+              continuous-time baselines.</div>
+          </div>
+          <br />
+          <div class="gallery-card">
+            <h4>Our method against discrete-time baselines on Humanoid</h4>
+            <img class="media-embed-full"
+              src="assets/images/additional/regular/humanoid-walk_ct_sac_vs_discrete_regular_last.png"
+              alt="Humanoid regular-time discrete baselines." />
+            <div class="caption">Regular-time evaluation on Humanoid after irregular-time training, against
+              discrete-time baselines.</div>
+          </div>
+          <br />
+          <div class="gallery-card">
+            <h4>Our method against continuous-time baselines on Quadruped</h4>
+            <img class="media-embed-full"
+              src="assets/images/additional/regular/quadruped-run_ct_sac_vs_continuous_regular_last.png"
+              alt="Quadruped regular-time continuous baselines." />
+            <div class="caption">Regular-time evaluation on Quadruped after irregular-time training, against
+              continuous-time baselines.</div>
+          </div>
+          <br />
+          <div class="gallery-card">
+            <h4>Our method against discrete-time baselines on Quadruped</h4>
+            <img class="media-embed-full"
+              src="assets/images/additional/regular/quadruped-run_ct_sac_vs_discrete_regular_last.png"
+              alt="Quadruped regular-time discrete baselines." />
+            <div class="caption">Regular-time evaluation on Quadruped after irregular-time training, against
+              discrete-time baselines.</div>
+          </div>
+        </details>
+
+        <details class="accordion" open>
+          <summary>Regular-time mean-test videos</summary>
+          <br />
+          <div class="media-panel">
+            <h4>Our method against continuous-time baselines on Cheetah</h4>
+            <video class="media-embed-full" controls preload="metadata">
+              <source src="assets/media/cheetah-run_ct_sac_vs_continuous_regular.mp4" type="video/mp4" />
+            </video>
+            <div class="caption">Regular-time evaluation on Cheetah after irregular-time training, against
+              continuous-time baselines.</div>
+          </div>
+          <br />
+          <div class="media-panel">
+            <h4>Our method against discrete-time baselines on Cheetah</h4>
+            <video class="media-embed-full" controls preload="metadata">
+              <source src="assets/media/cheetah-run_ct_sac_vs_discrete_regular.mp4" type="video/mp4" />
+            </video>
+            <div class="caption">Regular-time evaluation on Cheetah after irregular-time training, against discrete-time
+              baselines.</div>
+          </div>
+          <br />
+          <div class="media-panel">
+            <h4>Our method against continuous-time baselines on Walker</h4>
+            <video class="media-embed-full" controls preload="metadata">
+              <source src="assets/media/walker-run_ct_sac_vs_continuous_regular.mp4" type="video/mp4" />
+            </video>
+            <div class="caption">Regular-time evaluation on Walker after irregular-time training, against
+              continuous-time baselines.</div>
+          </div>
+          <br />
+          <div class="media-panel">
+            <h4>Our method against discrete-time baselines on Walker</h4>
+            <video class="media-embed-full" controls preload="metadata">
+              <source src="assets/media/walker-run_ct_sac_vs_discrete_regular.mp4" type="video/mp4" />
+            </video>
+            <div class="caption">Regular-time evaluation on Walker after irregular-time training, against discrete-time
+              baselines.</div>
+          </div>
+          <br />
+          <div class="media-panel">
+            <h4>Our method against continuous-time baselines on Humanoid</h4>
+            <video class="media-embed-full" controls preload="metadata">
+              <source src="assets/media/humanoid-walk_ct_sac_vs_continuous_regular.mp4" type="video/mp4" />
+            </video>
+            <div class="caption">Regular-time evaluation on Humanoid after irregular-time training, against
+              continuous-time baselines.</div>
+          </div>
+          <br />
+          <div class="media-panel">
+            <h4>Our method against discrete-time baselines on Humanoid</h4>
+            <video class="media-embed-full" controls preload="metadata">
+              <source src="assets/media/humanoid-walk_ct_sac_vs_discrete_regular.mp4" type="video/mp4" />
+            </video>
+            <div class="caption">Regular-time evaluation on Humanoid after irregular-time training, against
+              discrete-time baselines.</div>
+          </div>
+          <br />
+          <div class="media-panel">
+            <h4>Our method against continuous-time baselines on Quadruped</h4>
+            <video class="media-embed-full" controls preload="metadata">
+              <source src="assets/media/quadruped-run_ct_sac_vs_continuous_regular.mp4" type="video/mp4" />
+            </video>
+            <div class="caption">Regular-time evaluation on Quadruped after irregular-time training, against
+              continuous-time baselines.</div>
+          </div>
+          <br />
+          <div class="media-panel">
+            <h4>Our method against discrete-time baselines on Quadruped</h4>
+            <video class="media-embed-full" controls preload="metadata">
+              <source src="assets/media/quadruped-run_ct_sac_vs_discrete_regular.mp4" type="video/mp4" />
+            </video>
+            <div class="caption">Regular-time evaluation on Quadruped after irregular-time training, against
+              discrete-time baselines.</div>
+          </div>
+        </details>
+      </article>
+    </main>
+
+    <aside class="quicklinks">
+      <h3>On this page</h3>
+      <ul>
+        <li><a href="#gallery-overview">Overview</a></li>
+        <li><a href="#trading-gallery">Trading</a></li>
+        <li><a href="#irregular-control">Irregular-time control</a></li>
+        <li><a href="#regular-control">Regular-time transfer</a></li>
+      </ul>
+    </aside>
+  </div>
+
+</body>
+
+</html>

@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Random time and regret · Theory detail</title>
+  <meta name="description"
+    content="Random-time Hamiltonian bias transfer and appendix regret/sample-complexity discussion." />
+  <link rel="stylesheet" href="../assets/site.css" />
+  <script defer src="../assets/site.js"></script>
+  <script>
+    window.MathJax = { tex: { inlineMath: [['$', '$'], ['\(', '\)']] }, svg: { fontCache: 'global' } };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+
+<body>
+  <header class="header">
+    <div class="topbar">
+      <a class="brand" href="../index.html"><span class="dot"></span><span>Continuous-Time RL</span></a>
+      <nav class="primary-nav">
+        <a href="../index.html">Home</a>
+        <a href="../formulation.html">Formulation</a>
+        <a href="../algorithm.html">Algorithm</a>
+        <div class="nav-dropdown">
+          <a href="../theory.html" class="nav-dropdown-toggle">Theory</a>
+          <div class="nav-dropdown-menu">
+            <a href="value-convergence.html">Value convergence</a>
+            <a href="q-convergence.html">q-convergence</a>
+            <a href="algorithm-convergence.html">Algorithm convergence</a>
+            <a href="random-time-and-regret.html">Random time &amp; regret</a>
+          </div>
+        </div>
+        <a href="../experiments.html">Experiments</a>
+        <a href="../gallery.html">Gallery</a>
+      </nav>
+      <a class="github-btn" href="https://github.com/mpnguyen2/ct-rl">Codebase</a>
+    </div>
+  </header>
+  <div class="page-shell">
+    <main class="content">
+      <article class="article">
+        <h2 id="random-page">Random time and regret bound</h2>
+        <p class="section-lead">This page extends the deterministic finite-horizon theory in 2 directions. First, it
+          shows that the value-flow and $q$-rate analysis remains valid when holding times are random. Second, it adds a
+          more refined statistical argument that lifts one-step regression control to a cumulative sup-norm bound,
+          leading to a sample-complexity and regret statement for the practical critic.</p>
+
+        <h3 id="random-time-idea">1. Why random time needs its own argument</h3>
+        <p>
+          Our work is motivated by irregular event times, so the deterministic increment $u$ should not be the end
+          of the story. We therefore replace a fixed holding time by a random variable $U \in (0,1]$ and asks whether
+          the same bias and convergence logic survives after averaging over that randomness.
+        </p>
+        <p>
+          The key simplification is that most deterministic Hamiltonian bias bounds depend only on powers of $u$.
+          Once this is true, the random-time extension is obtained by taking expectations, so powers such as
+          $u^{\gamma}$ become moments $\mathbb{E}[U^{\gamma}]$.
+        </p>
+
+        <h3 id="hamiltonian-transfer">2. Hamiltonian bias transfers by averaging</h3>
+        <p>
+          Suppose the deterministic approximation error satisfies
+        </p>
+        <div class="math-block">$$
+          \|H_u^{(\alpha)}(V)-H^{(\alpha)}(V)\|_\infty \le C_H u^{\gamma}.
+          $$</div>
+        <p>
+          Defining the averaged random-time Hamiltonian $\bar H_U^{(\alpha)}(V)=\mathbb{E}[H_U^{(\alpha)}(V)]$,
+          we can prove the direct transfer bound:
+        </p>
+        <div class="math-block">$$
+          \|\bar H_U^{(\alpha)}(V)-H^{(\alpha)}(V)\|_\infty
+          \le C_H\,\mathbb{E}[U^{\gamma}].
+          $$</div>
+        <p>The same argument also applies to the Richardson Hamiltonian. </p>
+
+        <h3 id="random-picard">3. Random-time Picard iteration</h3>
+        <p>
+          The deterministic Picard-Hamiltonian update becomes an averaged operator
+        </p>
+        <div class="math-block">$$
+          (\widetilde T_{\tau}^{(\alpha)}V)(x)
+          := V(x)+\tau\,\bar H_U^{(\alpha)}(V)(x).
+          $$</div>
+        <p>
+          If the dynamic-programming semigroup still approximates the ideal Hamiltonian step with the local error:
+        </p>
+        <div class="math-block">$$
+          \|\Phi_\tau^{(\alpha)}(V)-(V+\tau H^{(\alpha)}(V))\|_\infty \le C_{\mathrm{DP}}\tau^p,
+          $$</div>
+        <p>
+          then the same contraction argument from the deterministic theory yields
+        </p>
+        <div class="math-block">$$
+          \|\widetilde V_k - V^{(\alpha)}\|_\infty
+          \le e^{-\rho\tau k}\,\|\widetilde V_0 - V^{(\alpha)}\|_\infty
+          + \frac{C_{\mathrm{DP}}\tau^p + \tau C_H\,\mathbb{E}[U^{\gamma}]}{1-e^{-\rho\tau}}.
+          $$</div>
+        <p>
+          Again, this is geometric contraction plus a residual discretization term. The only new part is that the
+          residual now depends on moments of the random time.
+        </p>
+
+        <h3 id="random-q">4. Random-time $q$-convergence and the role of $\mathbb{E}[1/U]$</h3>
+        <p>
+          For the Hamiltonian, averaging is enough. For the finite-horizon rate $q_V^u$, however, the definition
+          contains a division by $u$, so stability with respect to $V$ becomes worse when $u$ is small. We can still
+          prove that:
+        </p>
+        <div class="math-block">$$
+          \mathbb{E}\big[\|q_V^U-q_W^U\|_\infty\big]
+          \le 2\,\mathbb{E}\!\left[\frac{1}{U}\right]\|V-W\|_\infty,
+          $$</div>
+        <p>
+          and for the Richardson estimator,
+        </p>
+        <div class="math-block">$$
+          \mathbb{E}\big[\|\tilde q_V^U-\tilde q_W^U\|_\infty\big]
+          \le 10\,\mathbb{E}\!\left[\frac{1}{U}\right]\|V-W\|_\infty.
+          $$</div>
+        <p>
+          Hence if $\mathbb{E}[1/U] &lt; \infty$, the value error still transfers to the random-time rate bound exactly
+          as in the deterministic proof:
+        </p>
+        <div class="math-block">$$
+          \mathbb{E}\big[\|\tilde q_{\widetilde V_k}^U-q(V^*)\|_\infty\big]
+          \le 10\,\mathbb{E}\!\left[\frac{1}{U}\right]\|\widetilde V_k-V^*\|_\infty
+          + C_q'\,\mathbb{E}[U^2].
+          $$</div>
+
+        <h3 id="three-cases">5. The three random-time settings</h3>
+        <p>
+          We now summarize the random-time consequences of the 3 earlier deterministic cases:
+        </p>
+        <ul>
+          <li>under basic assumptions, the Hamiltonian bias scales like $\mathbb{E}[U^{1/2}]$;</li>
+          <li>under smoother assumptions, it improves to $\mathbb{E}[U]$;</li>
+          <li>with Richardson correction, it improves further to $\mathbb{E}[U^2]$.</li>
+        </ul>
+
+        <h3 id="regret-setup">6. A more refined regret</h3>
+        <p> We study the learned critic $\hat Q_k$ and asks how one-step regression error accumulates over time.
+          The core challenge is that the available generalization control is naturally in $L^2(\nu)$, whereas the
+          desired gap is in the sup norm. To bridge that gap, we assume a compact state-action domain, a replay
+          distribution with density bounded away from zero, and a uniformly Lipschitz critic class. These assumptions
+          allow a geometric norm-transfer argument from $L^2(\nu)$ to $\|\cdot\|_\infty$.
+        </p>
+
+        <h3 id="norm-transfer">7. From $L^2(\nu)$ error to sup-norm error</h3>
+        <p>
+          The key lemma states that if a Lipschitz function $g$ satisfies $\|g\|_{L^2(\nu)}\le \varepsilon$, then
+        </p>
+        <div class="math-block">$$
+          \|g\|_\infty
+          \le
+          \left(\frac{2^{m+2}L_g^m}{\nu_{\min}c_m}\right)^{\!\frac{1}{m+2}}
+          \varepsilon^{\frac{2}{m+2}}.
+          $$</div>
+        <p> This geometric observation converts the regression bound on
+          $\mathrm{stat}_k:=\|\hat Q_{k+1}-\mathcal F_{\tau,u}(\hat Q_k)\|_{L^2(\nu)}$
+          into a sup-norm one-step deviation:
+        </p>
+        <div class="math-block">$$
+          \zeta_k:=\|\hat Q_{k+1}-\mathcal F_{\tau,u}(\hat Q_k)\|_\infty.
+          $$</div>
+
+        <h3 id="cumulative-gap">8. Cumulative gap, sample complexity, and regret</h3>
+        <p>
+          Combining the population bias bound with the sup-norm statistical deviation gives a cumulative gap estimate of
+          the form
+        </p>
+        <div class="math-block">$$
+          \sum_{k=0}^{L-1}\|\hat Q_k-Q^{(\alpha)}\|_\infty
+          \le
+          \frac{1}{(1-e^{-\rho\tau})u}\|\hat Q_0-Q^{(\alpha)}\|_\infty
+          + C L(\tau/u+u)
+          + \frac{1}{\alpha}\sum_{k=0}^{L-1}\zeta_k.
+          $$</div>
+        <p>
+          Then chooses $\tau=L_{\max}^{-1/2}$, $u=L_{\max}^{-1/4}$,
+          and $n_k=(k+1)^{m+2}$, which leads to
+        </p>
+        <div class="math-block">$$
+          \sum_{k=0}^{L-1}\|\hat Q_k-Q^{(\alpha)}\|_\infty \le C_1 L^{3/4},
+          \qquad
+          K(L)=\sum_{k=0}^{L-1}n_k = C_2 L^{m+3}.
+          $$</div>
+        <p>
+          Rewriting the cumulative gap in terms of total samples $K$ yields the stated sublinear regret law
+        </p>
+        <div class="math-block">$$
+          \mathrm{Regret}(K)=\mathcal O\!\left(K^{\frac{4m+11}{4m+12}}\right).
+          $$</div>
+        <p>
+          With reasonable assumptions, the practical single-critic learner still admits a meaningful long-run
+          statistical guarantee.
+        </p>
+      </article>
+    </main>
+    <aside class="quicklinks">
+      <h3>On this page</h3>
+      <ul>
+        <li><a href="#random-time-idea">Why random time</a></li>
+        <li><a href="#hamiltonian-transfer">Hamiltonian transfer</a></li>
+        <li><a href="#random-picard">Random-time Picard</a></li>
+        <li><a href="#random-q">Random-time q-convergence</a></li>
+        <li><a href="#three-cases">Three random time settings</a></li>
+        <li><a href="#regret-setup">More refined regret</a></li>
+        <li><a href="#norm-transfer">Norm transfer</a></li>
+        <li><a href="#cumulative-gap">Sample complexity &amp; regret</a></li>
+      </ul>
+    </aside>
+  </div>
+</body>
+
+</html>

@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Algorithm · Continuous-Time RL</title>
+  <meta name="description"
+    content="CT-SAC, CT-TD3, fast critic updates, Richardson correction, and the single-critic implementation." />
+  <link rel="stylesheet" href="assets/site.css" />
+  <script defer src="assets/site.js"></script>
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+
+<body>
+  <header class="header">
+    <div class="topbar">
+      <a class="brand" href="index.html"><span class="dot"></span><span>Continuous-Time RL</span></a>
+      <nav class="primary-nav">
+        <a href="index.html">Home</a>
+        <a href="formulation.html">Formulation</a>
+        <a href="algorithm.html">Algorithm</a>
+
+        <div class="nav-dropdown">
+          <a href="theory.html" class="nav-dropdown-toggle">Theory</a>
+          <div class="nav-dropdown-menu">
+            <a href="theory/value-convergence.html">Value convergence</a>
+            <a href="theory/q-convergence.html">q-convergence</a>
+            <a href="theory/algorithm-convergence.html">Algorithm convergence</a>
+            <a href="theory/random-time-and-regret.html">Random time &amp; regret</a>
+          </div>
+        </div>
+
+        <a href="experiments.html">Experiments</a>
+        <a href="gallery.html">Gallery</a>
+      </nav>
+      <a class="github-btn" href="https://github.com/mpnguyen2/ct-rl">Codebase</a>
+    </div>
+  </header>
+
+  <div class="page-shell">
+    <main class="content">
+      <article class="article">
+        <h2 id="overview">Algorithm</h2>
+        <p class="section-lead">
+          The formulation page explains why continuous-time RL needs a Hamiltonian flow and a local advantage-rate
+          signal. Here we focus on how to turn those ideas to practical critic targets, actor updates, and deterministic
+          or Richardson-style variants.
+        </p>
+
+        <div class="figure-box">
+          <img src="assets/algorithm.svg"
+            alt="Algorithm pipeline for CT-SAC and CT-TD3: irregular transitions enter a replay buffer, the critic target combines reward, local value aggregation, and a time-scaled bootstrap term, and the actor is updated from the single critic." />
+          <div class="caption">
+            Algorithm overview. The environment samples irregular transition durations $u$, while the optimizer advances
+            the critic through an algorithmic step size $\tau$.
+          </div>
+        </div>
+
+        <h3 id="pipeline">Algorithmic pipeline</h3>
+        <div class="step-grid">
+          <div class="step">
+            <div class="badge">1</div>
+            <div>
+              <h4>Collect irregular transitions</h4>
+              <p>Store tuples $(x,a,r,x',u)$ in an off-policy replay buffer. The duration $u$ is part of the sample and
+                can vary substantially across the batch.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="badge">2</div>
+            <div>
+              <h4>Build a continuous-time critic target</h4>
+              <p>Instead of a fixed-step Bellman backup, use a target that mixes reward, policy-averaged soft value, and
+                a bootstrap term scaled by the observed holding time.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="badge">3</div>
+            <div>
+              <h4>Represent both $V$ and $q$ with one critic</h4>
+              <p>The practical parameterization is $Q(x,a)\approx V(x)+q(x,a)$, so a single network carries both
+                value-like and advantage-rate information.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="badge">4</div>
+            <div>
+              <h4>Update the actor from the critic</h4>
+              <p>For CT-SAC the policy is improved toward a Boltzmann distribution induced by the critic; CT-TD3
+                replaces this with a deterministic actor and twin critics.</p>
+            </div>
+          </div>
+        </div>
+
+        <h3 id="single-critic">Single-critic implementation</h3>
+        <p>
+          We use a single critic of the form:
+        </p>
+        <div class="math-block">$$Q_k(x,a):=V_k(x)+q_k(x,a).$$</div>
+        <p>
+          Near the improved policy, the advantage-rate is often small, so $Q_k(x,a)$ behaves almost like
+          a state-value predictor on-policy, but still retains action discrimination off-policy.
+        </p>
+
+        <h3 id="critic">CT-SAC critic target</h3>
+        <p>
+          Writing $\tilde Q_k(x,a):=Q_k(x,a)-\alpha\log\pi(a\mid x)$ and $\gamma=e^{-\beta u}$, the single-critic update
+          takes the form:
+        </p>
+        <div class="math-block large">
+          $$\begin{aligned}
+          Q_{k+1}(x,a)=&(1-\tau)Q_k(x,a)
+          +\tau\,\mathbb E_a[\tilde Q_k(x,a)]
+          +\tau\,r(x,a)\\
+          &+\tau\,
+          \frac{\gamma\,\mathbb E_{a'}[\tilde Q_k(x',a')]-\mathbb E_a[\tilde Q_k(x,a)]}{u}.
+          \end{aligned}$$
+        </div>
+        <p>
+          The critic target now depends explicitly on the observed duration $u$, so the method can train on batches that
+          mix many short and large holding times without forcing everything into the same discrete-time step.
+        </p>
+
+        <div class="callout">
+          <strong>Note.</strong>
+          The actor still uses a familiar update. Since the soft maximizing policy is Boltzmann in $q_V$, and $Q=V+q$
+          differs from $q$ only by an action-independent shift, CT-SAC updates the policy through
+          $\pi(a\mid x)\propto \exp(Q(x,a)/\alpha)$.
+        </div>
+
+        <h3 id="fast-update">Fast-update view</h3>
+        <p>
+          For implementation, it is often convenient to separate the "new information" part of the critic target from
+          the mixing step. Define:
+        </p>
+        <div class="math-block">
+          $$Q_{k+1}^{\mathrm{fast}}(s,a):=\frac{Q_{k+1}(s,a)-(1-\tau)Q_k(s,a)}{\tau}.$$
+        </div>
+        <p>
+          Then the update can be written as:
+        </p>
+        <div class="math-block large">
+          $$\begin{aligned}
+          Q_{k+1}^{\mathrm{fast}}(s,a)
+          &= r(s,a)+\mathbb E_a[\tilde Q_k(s,a)]
+          +\frac{\gamma\,\mathbb E_{a'}[\tilde Q_k(s',a')]-\mathbb E_a[\tilde Q_k(s,a)]}{u},\\
+          Q_{k+1}(s,a)
+          &= \tau\,Q_{k+1}^{\mathrm{fast}}(s,a)+(1-\tau)Q_k(s,a).
+          \end{aligned}$$
+        </div>
+        <p>
+          This presentation makes the connection to standard deep RL implementations easier to see: the second line is a
+          weighted interpolation step, while the first line isolates the actual continuous-time target. When $u=1$, the
+          update resembles a discrete-time critic target much more closely.
+        </p>
+
+        <h3 id="ctsac">CT-SAC algorithm</h3>
+        <div class="eq-list">
+          <div class="eq-card">
+            <h4>Data collection</h4>
+            <p>Roll out the current stochastic policy, collect $(x,a,r,x',u)$, and store transitions in an off-policy
+              replay buffer. The duration $u$ is kept explicitly instead of being absorbed into a nominal step.</p>
+          </div>
+          <div class="eq-card">
+            <h4>Critic regression</h4>
+            <p>Use mini-batches to fit the single critic against the continuous-time target above. This is the main
+              place where the formulation becomes a scalable algorithm.</p>
+          </div>
+          <div class="eq-card">
+            <h4>Actor improvement</h4>
+            <p>Update the stochastic policy toward $\pi_\phi(a\mid x)\propto \exp(Q_\theta(x,a)/\alpha)$, giving a soft
+              continuous-time analogue of SAC.</p>
+          </div>
+        </div>
+
+        <h3 id="cttd3">CT-TD3 algorithm</h3>
+        <p>
+          We also give a deterministic variant of CT-SAC named CT-TD3 that mirrors discrete-time TD3 directly. CT-TD3
+          keeps the same irregular-time critic logic but replaces the stochastic actor with a deterministic policy
+          $\mu_\phi$, uses twin critics, adds target policy smoothing, and delays actor updates.
+        </p>
+        <details>
+          <summary>CT-TD3 full algorithm</summary>
+          <div class="detail-stack">
+            <p><strong>Target policy smoothing.</strong> Use
+              $$\tilde a'=\mu_{\bar\phi}(x')+\epsilon',\qquad
+              \epsilon'\sim \mathrm{clip}\big(\mathcal N(0,\sigma_{\mathrm{targ}}^2I),-c,c\big).$$
+            </p>
+            <p><strong>Clipped double-$Q$ bootstrap.</strong> Form
+              $$\bar Q_{\bar\theta}(x',\tilde a'):=\min\{Q_{\bar\theta_1}(x',\tilde a'),\,Q_{\bar\theta_2}(x',\tilde
+              a')\}.$$
+            </p>
+            <p><strong>Critic target.</strong> For each critic,
+              $$\begin{aligned}
+              y_i:=&(1-\tau)Q_{\bar\theta_i}(x,a)
+              +\tau\,\bar Q_{\bar\theta}\big(x,\mu_{\bar\phi}(x)\big)
+              +\tau\,r\\
+              &+\tau\,\frac{\gamma\,\bar Q_{\bar\theta}(x',\tilde a')-\bar Q_{\bar\theta}(x,\mu_{\bar\phi}(x))}{u}.
+              \end{aligned}$$
+            </p>
+            <p><strong>Actor update.</strong> Every $d$ steps, update the deterministic actor through the gradient of
+              $Q_{\theta_1}(x,a)$ evaluated at $a=\mu_\phi(x)$.</p>
+          </div>
+        </details>
+
+        <h3 id="richardson">Richardson variant</h3>
+        <p>
+          We also have a corrected single-critic update based on the Richardson rate estimator. The goal is
+          not to change the overall training loop, but to improve the short-horizon approximation used inside the critic
+          target.
+        </p>
+        <p>
+          Define the policy-averaged soft value functional:
+        </p>
+        <div class="math-block">
+          $$S_k(x):=\mathbb E_{a\sim\pi_k(\cdot\mid x)}[\tilde Q_k^{\mathrm R}(x,a)],
+          \qquad
+          \tilde Q_k^{\mathrm R}(x,a):=Q_k^{\mathrm R}(x,a)-\alpha\log\pi_k(a\mid x),$$
+        </div>
+        <p>
+          Together with the Richardson critic decomposition:
+        </p>
+        <div class="math-block">
+          $$Q_k^{\mathrm R}(x,a):=V_k(x)+\tilde q_{V_k}^u(x,a).$$
+        </div>
+        <p>
+          The resulting Richardson-corrected update is:
+        </p>
+        <div class="math-block large">
+          $$\begin{aligned}
+          Q_{k+1}^{\mathrm R}(x,a)
+          &=(1-\tau)Q_k^{\mathrm R}(x,a)+\tau r(x,a)+\tau S_k(x)\\
+          &\quad+\frac{\tau}{u}\Big(
+          4\gamma_{1/2}\,\mathbb E_x^a[S_k(X_{u/2})]
+          -\gamma\,\mathbb E_x^a[S_k(X_u)]
+          -3S_k(x)\Big),
+          \end{aligned}$$
+        </div>
+        <p>
+          where $\gamma=e^{-\beta u}$ and $\gamma_{1/2}=e^{-\beta u/2}$. This variant is more accurate in $u$ under
+          smoother assumptions, and directly links to the stronger convergence on the theory page.
+        </p>
+
+        <h3 id="notes">Notes</h3>
+        <div class="card-grid">
+          <section class="card">
+            <h3>$u$ versus $\tau$</h3>
+            <p>$u$ comes from the environment and may vary sample by sample. $\tau$ is the algorithmic step size
+              controlling the critic/value flow update. Keeping them separate is essential.</p>
+          </section>
+          <section class="card">
+            <h3>Bridge to theory</h3>
+            <p>The formulation page explains why the Hamiltonian flow is needed. This page explains how that
+              idea becomes actual replay-buffer training targets, deterministic variants, and corrected short-horizon
+              updates. </p>
+          </section>
+        </div>
+      </article>
+    </main>
+
+    <aside class="quicklinks">
+      <h3>On this page</h3>
+      <ul>
+        <li><a href="#pipeline">Pipeline</a></li>
+        <li><a href="#single-critic">Single critic</a></li>
+        <li><a href="#critic">CT-SAC critic</a></li>
+        <li><a href="#fast-update">Fast update</a></li>
+        <li><a href="#ctsac">CT-SAC algorithm</a></li>
+        <li><a href="#cttd3">CT-TD3 algorithm</a></li>
+        <li><a href="#richardson">Richardson variant</a></li>
+      </ul>
+    </aside>
+  </div>
+
+</body>
+
+</html>

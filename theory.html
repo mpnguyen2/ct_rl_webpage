@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Theory · Continuous-Time RL</title>
+  <meta name="description"
+    content="Theorem statements and proof sketches for value convergence, q-convergence, and algorithm convergence." />
+  <link rel="stylesheet" href="assets/site.css" />
+  <script defer src="assets/site.js"></script>
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+
+<body>
+  <header class="header">
+    <div class="topbar">
+      <a class="brand" href="index.html"><span class="dot"></span><span>Continuous-Time RL</span></a>
+      <nav class="primary-nav">
+        <a href="index.html">Home</a>
+        <a href="formulation.html">Formulation</a>
+        <a href="algorithm.html">Algorithm</a>
+
+        <div class="nav-dropdown">
+          <a href="theory.html" class="nav-dropdown-toggle">Theory</a>
+          <div class="nav-dropdown-menu">
+            <a href="theory/value-convergence.html">Value convergence</a>
+            <a href="theory/q-convergence.html">q-convergence</a>
+            <a href="theory/algorithm-convergence.html">Algorithm convergence</a>
+            <a href="theory/random-time-and-regret.html">Random time &amp; regret</a>
+          </div>
+        </div>
+
+        <a href="experiments.html">Experiments</a>
+        <a href="gallery.html">Gallery</a>
+      </nav>
+      <a class="github-btn" href="https://github.com/mpnguyen2/ct-rl">Codebase</a>
+    </div>
+  </header>
+
+  <div class="page-shell">
+    <main class="content">
+      <article class="article">
+        <h2 id="overview">Theory</h2>
+        <p class="section-lead">
+          The theoretical analysis is organized in three layers. First, the ideal Picard-Hamiltonian iteration is
+          studied at the analytic level. Next, finite-horizon and Richardson approximations are inserted to recover
+          model-free learning. Finally, these guarantees are lifted to the practical single-critic implementation of
+          CT-SAC and CT-TD3.
+        </p>
+
+        <div class="figure-box">
+          <img src="assets/theory.svg"
+            alt="Theory roadmap from semigroup comparison to value convergence, q-convergence, and algorithm convergence." />
+          <div class="caption">
+            Theory roadmap. The key reference object is the entropy-regularized dynamic-programming semigroup
+            $\Phi_{\tau}^{(\alpha)}$, which is a contraction in the sup-norm even though the Hamiltonian update itself
+            is not.
+          </div>
+        </div>
+
+        <h3 id="semigroup">Why compare against a semigroup</h3>
+        <p>
+          The ideal value update in the paper is the Picard-Hamiltonian step
+        </p>
+        <div class="math-block">$$T_{\tau}^{(\alpha)}(V)=V+\tau H^{(\alpha)}(V).$$</div>
+        <p>
+          Unlike a discrete-time Bellman operator, this map contains the infinitesimal generator term $L^aV$ and is
+          therefore not a contraction on $(C_b,\|\cdot\|_\infty)$. Instead of forcing a direct analytic contraction
+          argument, the paper introduces a probabilistic dynamic-programming reference operator:
+        </p>
+        <div class="math-block">
+          $$
+          \begin{aligned}
+          (\Phi_{\tau}^{(\alpha)}V)(x)
+          :=\sup_{\pi}\,\mathbb E\Bigg[
+          \int_0^{\tau} e^{-\beta t}\big(r(X_t,a_t)-\alpha\log \pi(a_t\mid X_t)\big)\,dt
+          + e^{-\beta\tau}V(X_{\tau})
+          \;\Big|\; X_0=x
+          \Bigg].
+          \end{aligned}
+          $$
+        </div>
+        <p>
+          This semigroup is value-only and serves as the contraction anchor for the whole proof strategy. The
+          Picard-Hamiltonian update is then treated as a local approximation to this semigroup.
+        </p>
+
+        <div class="callout dark">
+          <strong>Main proof idea.</strong>
+          Show that $T_{\tau}^{(\alpha)}$ is close to $\Phi_{\tau}^{(\alpha)}$ for small $\tau$, then let the
+          contraction of $\Phi_{\tau}^{(\alpha)}$ absorb the accumulated local error.
+        </div>
+
+        <div class="theorem-grid">
+          <section class="theorem" id="value-thm">
+            <div class="tag">Theorem 1</div>
+            <h3>Value function convergence</h3>
+            <p>
+              For the ideal Picard–Hamiltonian iteration $V_{k+1}=T_{\tau}^{(\alpha)}(V_k)$, the value sequence
+              converges to $V^{(\alpha)}$ as $\tau\to 0$, with an exponentially decaying contraction term plus a local
+              approximation error.
+            </p>
+            <div class="math-block">
+              $$
+              \|V_k - V^{(\alpha)}\|_\infty
+              \le C_0 e^{-\beta\tau k}
+              + \frac{C_1\tau^{3/2}}{1-e^{-\beta\tau}}.
+              $$
+            </div>
+            <p><strong>Sketch.</strong> Compare the approximate update $T_{\tau}^{(\alpha)}$ to the semigroup iteration
+              $W_{k+1}=\Phi_{\tau}^{(\alpha)}(W_k)$. A short-time Itô expansion yields a one-step mismatch of order
+              $\tau^{3/2}$, and the contraction of $\Phi_{\tau}^{(\alpha)}$ then propagates that error safely across
+              iterations.</p>
+            <p><a href="theory/value-convergence.html">See the detailed page →</a></p>
+          </section>
+
+          <section class="theorem" id="q-thm">
+            <div class="tag">Theorem 2</div>
+            <h3>$q$-convergence with finite-horizon and Richardson correction</h3>
+            <p>
+              In the model-free setting, the analytic rate $q_V$ is replaced by the finite-horizon approximation
+              $q_V^u$, and then improved through Richardson extrapolation. Under stronger smoothness assumptions, both
+              the value error and the corrected $q$-error can be controlled quantitatively:
+            </p>
+            <div class="math-block">
+              $$
+              \|V_k - V^{(\alpha)}\|_\infty
+              \le e^{-\rho\tau k}\,\|V_0 - V^{(\alpha)}\|_\infty
+              + \frac{C_1(\tau^2 + \tau u^2)}{1-e^{-\rho\tau}}
+              $$
+              $$
+              \|\tilde q_{V_k}^u - q_{V^{(\alpha)}}\|_\infty
+              \le \frac{L}{u}\,\|V_k - V^{(\alpha)}\|_\infty + C_2 u^2.
+              $$
+            </div>
+            <p><strong>Sketch.</strong> The key upgrade is that Richardson cancellation reduces the finite-horizon bias
+              from first order to $O(u^2)$. That sharper local bias leads to a stronger one-step approximation of the
+              semigroup, while the final $q$-bound follows by transferring the work back to the value function through a
+              Lipschitz estimate in $V$.</p>
+            <p><a href="theory/q-convergence.html">See the detailed page →</a></p>
+          </section>
+
+          <section class="theorem" id="algo-thm">
+            <div class="tag">Theorem 3</div>
+            <h3>Single-critic algorithm convergence</h3>
+            <p>
+              The practical critic update used by CT-SAC and CT-TD3 is not a separate object: it is an algebraic
+              rewriting of the decoupled $(V_k,q_k)$ iteration. In the exact population setting, the learned critic
+              converges to
+              $Q^{(\alpha)} = V^{(\alpha)} + q_{V^{(\alpha)}}$.
+            </p>
+            <p>
+              With finite samples, the theory adds a regression error term at each update and shows that sufficiently
+              accurate fitting drives the learned critic arbitrarily close to the analytic iterate.
+            </p>
+            <p><a href="theory/algorithm-convergence.html">See the detailed page →</a></p>
+          </section>
+        </div>
+
+        <h3 id="proof-sketches">Proof-sketch narrative</h3>
+        <div class="card-grid">
+          <section class="card">
+            <h3>Layer 1 · Ideal flow</h3>
+            <p>
+              Start with the analytic Hamiltonian flow $V_{k+1}=V_k+\tau H^{(\alpha)}(V_k)$ and compare it against the
+              contraction semigroup $\Phi_{\tau}^{(\alpha)}$.
+            </p>
+          </section>
+          <section class="card">
+            <h3>Layer 2 · Model-free correction</h3>
+            <p>
+              Replace $q_V$ by $q_V^u$ and then by the Richardson-corrected $\tilde q_V^u$. The sharper bias control
+              yields better local error terms and convergence for both $V$ and $q$.
+            </p>
+          </section>
+          <section class="card">
+            <h3>Layer 3 · Practical algorithm</h3>
+            <p>
+              Show that the single critic $Q\approx V+q$ preserves the same structure, so the closed-form theory carries
+              over to the critic used in CT-SAC and CT-TD3.
+            </p>
+          </section>
+        </div>
+
+        <h3 id="random-time">Random-time and sample-complexity</h3>
+        <p>
+          We extend the same theoretical analysis to random holding times $U$ by averaging deterministic bias bounds
+          over the law of $U$. We also develop a more refined statistical argument that transfers $L^2$ regression
+          control into sup-norm control under compactness, coverage, and Lipschitz assumptions, leading to sublinear
+          regret in total samples.
+        </p>
+        <p><a href="theory/random-time-and-regret.html">See the detailed page →</a></p>
+
+        <h3 id="detail-pages">Theory detail pages</h3>
+        <div class="detail-links">
+          <a class="detail-link" href="theory/value-convergence.html"><strong>Value convergence</strong><span>Semigroup
+              contraction, one-step mismatch, and the proof structure behind the ideal Picard–Hamiltonian
+              iteration.</span></a>
+          <a class="detail-link" href="theory/q-convergence.html"><strong>$q$-convergence</strong><span>Finite-horizon
+              bias, Richardson cancellation, Hamiltonian Lipschitz lemmas, and the final $q$-error transfer.</span></a>
+          <a class="detail-link" href="theory/algorithm-convergence.html"><strong>Algorithm
+              convergence</strong><span>How the single critic is induced from $(V,q)$ and how finite-sample regression
+              error enters the recursion.</span></a>
+          <a class="detail-link" href="theory/random-time-and-regret.html"><strong>Random time and
+              regret</strong><span>Averaged bias bounds for random holding times and the refined
+              sample-complexity discussion.</span></a>
+        </div>
+      </article>
+    </main>
+
+    <aside class="quicklinks">
+      <h3>On this page</h3>
+      <ul>
+        <li><a href="#semigroup">Semigroup reference</a></li>
+        <li><a href="#value-thm">Value convergence</a></li>
+        <li><a href="#q-thm">$q$-convergence</a></li>
+        <li><a href="#algo-thm">Algorithm convergence</a></li>
+        <li><a href="#proof-sketches">Proof structure</a></li>
+        <li><a href="#random-time">Random time & regret</a></li>
+        <li><a href="#detail-pages">Detail pages</a></li>
+      </ul>
+    </aside>
+  </div>
+
+</body>
+
+</html>

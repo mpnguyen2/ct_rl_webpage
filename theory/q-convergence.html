@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>q-convergence · Theory detail</title>
+  <meta name="description"
+    content="Detailed summary of the appendix proof for finite-horizon and Richardson q-convergence." />
+  <link rel="stylesheet" href="../assets/site.css" />
+  <script defer src="../assets/site.js"></script>
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <style>
+    .theory-hero {
+      margin: 1.1rem 0 1.6rem;
+      padding: 1.2rem 1.2rem 1rem;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: linear-gradient(180deg, rgba(16, 185, 129, 0.08), rgba(15, 23, 42, 0.02));
+      box-shadow: var(--shadow);
+    }
+
+    .theory-hero-grid {
+      display: grid;
+      grid-template-columns: 1.12fr 0.98fr;
+      gap: 18px;
+      align-items: center;
+    }
+
+    .mini-pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 0.85rem 0 0;
+    }
+
+    .mini-pill {
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.78);
+      font-size: 0.93rem;
+      color: var(--muted);
+    }
+
+    .proof-roadmap {
+      width: 100%;
+      max-width: 560px;
+      height: auto;
+      margin-left: auto;
+      display: block;
+    }
+
+    .note-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin: 1rem 0 1.3rem;
+    }
+
+    .note-card {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 1rem 1rem 0.9rem;
+      background: rgba(255, 255, 255, 0.84);
+    }
+
+    .note-card h4 {
+      margin: 0 0 0.5rem;
+      font-size: 1rem;
+    }
+
+    .result-card {
+      margin: 1rem 0 1.5rem;
+      padding: 1rem 1.1rem;
+      border: 1px solid rgba(16, 185, 129, 0.24);
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(16, 185, 129, 0.10), rgba(16, 185, 129, 0.03));
+    }
+
+    .result-card h3 {
+      margin-top: 0;
+    }
+
+    .step-list {
+      padding-left: 1.2rem;
+    }
+
+    .step-list li {
+      margin-bottom: 0.45rem;
+    }
+
+    .math-block {
+      overflow-x: auto;
+    }
+
+    @media (max-width: 900px) {
+
+      .theory-hero-grid,
+      .note-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .proof-roadmap {
+        margin: 0 auto;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="header">
+    <div class="topbar">
+      <a class="brand" href="../index.html"><span class="dot"></span><span>Continuous-Time RL</span></a>
+      <nav class="primary-nav">
+        <a href="../index.html">Home</a>
+        <a href="../formulation.html">Formulation</a>
+        <a href="../algorithm.html">Algorithm</a>
+        <div class="nav-dropdown">
+          <a href="../theory.html" class="nav-dropdown-toggle">Theory</a>
+          <div class="nav-dropdown-menu">
+            <a href="value-convergence.html">Value convergence</a>
+            <a href="q-convergence.html">q-convergence</a>
+            <a href="algorithm-convergence.html">Algorithm convergence</a>
+            <a href="random-time-and-regret.html">Random time &amp; regret</a>
+          </div>
+        </div>
+        <a href="../experiments.html">Experiments</a>
+        <a href="../gallery.html">Gallery</a>
+      </nav>
+      <a class="github-btn" href="https://github.com/mpnguyen2/ct-rl">Codebase</a>
+    </div>
+  </header>
+  <div class="page-shell">
+    <main class="content">
+      <article class="article">
+        <h2 id="q-page">q-convergence</h2>
+        <p class="section-lead">We present the proof of model-free $q$-convergence. The
+          generator-based rate $q_V$ is replaced by a finite-horizon estimate $q_V^u$, which introduces both
+          approximation bias and stronger sensitivity to the value function. We show how smoothness plus
+          Richardson extrapolation sharpen those errors enough to recover convergence of both $V_k$ and the learned
+          instantaneous rate.</p>
+
+        <section class="theory-hero" aria-label="q-convergence proof roadmap">
+          <div class="theory-hero-grid">
+            <div>
+              <h3 style="margin-top:0;">Proof roadmap</h3>
+              <p>The argument has four layers: start from the baseline finite-horizon bias, strengthen it using a
+                second-order semigroup expansion, cancel the leading $u$-bias by Richardson extrapolation, and then
+                transfer the resulting Hamiltonian mismatch into value and $q$-error recursions.</p>
+              <div class="mini-pill-row">
+                <span class="mini-pill">Finite-horizon estimator: $q_V^u$</span>
+                <span class="mini-pill">Richardson correction: $\tilde q_V^u=2q_V^{u/2}-q_V^u$</span>
+                <span class="mini-pill">Mismatch: $\tau^2+\tau u^2$</span>
+              </div>
+            </div>
+            <svg class="proof-roadmap" viewBox="0 0 570 320" xmlns="http://www.w3.org/2000/svg" role="img"
+              aria-label="Flow diagram for q-convergence proof">
+              <defs>
+                <linearGradient id="qg1" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#ecfdf5" />
+                  <stop offset="100%" stop-color="#d1fae5" />
+                </linearGradient>
+                <linearGradient id="qg2" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#eff6ff" />
+                  <stop offset="100%" stop-color="#dbeafe" />
+                </linearGradient>
+              </defs>
+
+              <rect x="20" y="24" width="150" height="92" rx="18" fill="url(#qg1)" stroke="#6ee7b7" />
+              <text x="95" y="53" text-anchor="middle" font-size="14" font-weight="700" fill="#1f2937">Baseline
+                bias</text>
+              <text x="95" y="78" text-anchor="middle" font-size="13" fill="#334155">standard assumptions</text>
+              <text x="95" y="96" text-anchor="middle" font-size="13" fill="#334155">give $\sqrt{u}$ scale</text>
+
+              <rect x="195" y="24" width="165" height="92" rx="18" fill="url(#qg2)" stroke="#93c5fd" />
+              <text x="277.5" y="53" text-anchor="middle" font-size="14" font-weight="700" fill="#1f2937">Smooth
+                expansion</text>
+              <text x="277.5" y="78" text-anchor="middle" font-size="13" fill="#334155">second-order semigroup</text>
+              <text x="277.5" y="96" text-anchor="middle" font-size="13" fill="#334155">improves bias to $u$</text>
+
+              <rect x="385" y="24" width="165" height="92" rx="18" fill="#f8fafc" stroke="#cbd5e1" />
+              <text x="467.5" y="53" text-anchor="middle" font-size="14" font-weight="700" fill="#1f2937">Richardson
+                step</text>
+              <text x="467.5" y="78" text-anchor="middle" font-size="13" fill="#334155">cancel leading term</text>
+              <text x="467.5" y="96" text-anchor="middle" font-size="13" fill="#334155">leave $u^2$ bias</text>
+
+              <rect x="112" y="190" width="170" height="92" rx="18" fill="#f8fafc" stroke="#cbd5e1" />
+              <text x="197" y="219" text-anchor="middle" font-size="14" font-weight="700" fill="#1f2937">Value
+                recursion</text>
+              <text x="197" y="244" text-anchor="middle" font-size="13" fill="#334155">contraction plus</text>
+              <text x="197" y="262" text-anchor="middle" font-size="13" fill="#334155">$\tau^2+\tau u^2$ mismatch</text>
+
+              <rect x="315" y="190" width="175" height="92" rx="18" fill="#ecfeff" stroke="#67e8f9" />
+              <text x="402.5" y="219" text-anchor="middle" font-size="14" font-weight="700" fill="#1f2937">Transfer to
+                $q$</text>
+              <text x="402.5" y="244" text-anchor="middle" font-size="13" fill="#334155">Lipschitz in $V$ with</text>
+              <text x="402.5" y="262" text-anchor="middle" font-size="13" fill="#334155">factor $1/u$</text>
+
+              <path d="M170 70 H195" stroke="#64748b" stroke-width="2.2" fill="none" />
+              <path d="M360 70 H385" stroke="#64748b" stroke-width="2.2" fill="none" />
+              <path d="M467.5 116 V152 H197 V190" stroke="#64748b" stroke-width="2.2" fill="none" />
+              <path d="M282 236 H315" stroke="#64748b" stroke-width="2.2" fill="none" />
+            </svg>
+          </div>
+        </section>
+
+        <div class="note-grid">
+          <div class="note-card">
+            <h4>What changes from the value proof</h4>
+            <p>The ideal Hamiltonian $H^{(\alpha)}(V)$ is no longer used directly. Instead, we study
+              finite-horizon Hamiltonians built from $q_V^u$ and the Richardson-corrected $\tilde q_V^u$, so there is
+              now both a local semigroup discretization error and a modelling bias in $u$.</p>
+          </div>
+          <div class="note-card">
+            <h4>Main technical difficulty</h4>
+            <p>The map $V \mapsto q_V^u$ is only Lipschitz with constant of order $1/u$. This is why the final $q$-bound
+              contains a factor $1/u$, and why the theorem requires the limit $\tau/u \to 0$ when sending both
+              discretization scales to zero.</p>
+          </div>
+        </div>
+
+        <div class="result-card">
+          <h3 style="margin-bottom:0.55rem;">Main theorem on this page</h3>
+          <div class="math-block">$$
+            \|V_k - V^{(\alpha)}\|_\infty
+            \le e^{-\rho \tau k}\,\|V_0 - V^{(\alpha)}\|_\infty
+            + \frac{C_1(\tau^2 + \tau u^2)}{1-e^{-\rho \tau}},
+            $$</div>
+          <div class="math-block">$$
+            \|\tilde q_{V_k}^u - q_{V^{(\alpha)}}\|_\infty
+            \le \frac{L}{u}\,\|V_k - V^{(\alpha)}\|_\infty + C_2 u^2.
+            $$</div>
+          <p style="margin-bottom:0;">The first estimate controls the value flow with a finite-horizon Hamiltonian. The
+            second estimate transfers value convergence into convergence of the learned instantaneous advantage-rate.
+          </p>
+        </div>
+
+        <h3 id="baseline-bias">1. Baseline finite-horizon bias</h3>
+        <p>Before imposing extra smoothness, we record the natural bias scale that already follows from
+          Dynkin's formula and the small-time moment bounds. Under the standard diffusion assumptions one has:</p>
+        <div class="math-block">$$
+          \|q_V^u-q_V\|_\infty \le C\sqrt{u},
+          $$</div>
+        <p>where $q_V^u$ is the short-rollout estimator and $q_V$ is the generator-based infinitesimal rate. This
+          already shows that finite-horizon estimates are asymptotically correct, but the rate is too weak for the
+          sharper theorem in the main paper.</p>
+        <p>We additionally note that the associated Hamiltonian inherits the same baseline scale:</p>
+        <div class="math-block">$$
+          \|H_u^{(\alpha)}(V)-H^{(\alpha)}(V)\|_\infty \le C\sqrt{u}.
+          $$</div>
+
+        <h3 id="smoothness">2. Smoothness assumptions and second-order expansion</h3>
+        <p>To sharpen the bias, the appendix strengthens the assumptions: the controlled drift and diffusion are $C^2$
+          in the state variable with bounded derivatives, the reward is $C^2$, and the value class is upgraded to
+          $\mathcal D \subset C_b^4(\mathbb R^d)$. Under these assumptions, the fixed-action semigroup admits a
+          second-order expansion:</p>
+        <div class="math-block">$$
+          (P_t^aV)(x)=V(x)+t(L^aV)(x)+R_V(t;x,a),
+          \qquad
+          \sup_{x,a}|R_V(t;x,a)|\le C_V t^2.
+          $$</div>
+        <p>Substituting this expansion into the finite-horizon definition</p>
+        <div class="math-block">$$
+          q_V^u(x,a)=\frac{e^{-\beta u}\,\mathbb E_x^a[V(X_u^a)]-V(x)}{u}+r(x,a)
+          $$</div>
+        <p>improves the modelling bias to first order:</p>
+        <div class="math-block">$$
+          \|q_V^u-q_V\|_\infty \le C_q u.
+          $$</div>
+
+        <h3 id="richardson">3. Richardson cancellation</h3>
+        <p>The corrected estimator is defined by</p>
+        <div class="math-block">$$
+          \tilde q_V^u(x,a):=2q_V^{u/2}(x,a)-q_V^u(x,a).
+          $$</div>
+        <p>Because the finite-horizon expansion has the form</p>
+        <div class="math-block">$$
+          q_V^u(x,a)=q_V(x,a)+u\,c_1(x,a)+u^2 c_2(u;x,a),
+          $$</div>
+        <p>the linear term cancels, leaving the sharper bound</p>
+        <div class="math-block">$$
+          \|\tilde q_V^u-q_V\|_\infty \le \tilde C_q u^2.
+          $$</div>
+
+        <h3 id="hamiltonian-bias">4. Hamiltonian bias and Lipschitz transfer</h3>
+        <p>The next step is to push the $q$-bias through the soft Hamiltonian. We use the log-sum-exp map's
+          Lipschitz property: for bounded functions $z$ and $\bar z$,</p>
+        <div class="math-block">$$
+          \left|
+          \alpha\log\!\int_{\mathcal A} e^{z(a)/\alpha}\,da
+          -
+          \alpha\log\!\int_{\mathcal A} e^{\bar z(a)/\alpha}\,da
+          \right|
+          \le \|z-\bar z\|_\infty.
+          $$</div>
+        <p>Applying this pointwise with $z=q_V^u(x,\cdot)$ or $z=\tilde q_V^u(x,\cdot)$ yields:</p>
+        <div class="math-block">$$
+          \|H_u^{(\alpha)}(V)-H^{(\alpha)}(V)\|_\infty \le \|q_V^u-q_V\|_\infty,
+          $$</div>
+        <div class="math-block">$$
+          \|\tilde H_u^{(\alpha)}(V)-H^{(\alpha)}(V)\|_\infty \le \|\tilde q_V^u-q_V\|_\infty \le C u^2.
+          $$</div>
+        <p>We also have the stability estimates:</p>
+        <div class="math-block">$$
+          \|q_V^u-q_W^u\|_\infty \le \frac{2}{u}\,\|V-W\|_\infty,
+          \qquad
+          \|\tilde q_V^u-\tilde q_W^u\|_\infty \le \frac{6}{u}\,\|V-W\|_\infty.
+          $$</div>
+
+        <h3 id="value-transfer">5. Perturbed value recursion</h3>
+        <p>Under stronger assumptions, the short-horizon semigroup now has a better local expansion than in the
+          value-only theorem:</p>
+        <div class="math-block">$$
+          \|\Phi_\tau^{(\alpha)}(V)-T_\tau^{(\alpha)}(V)\|_\infty \le C_\Phi \tau^2.
+          $$</div>
+        <p>Combining that with the Hamiltonian bias above gives the one-step mismatch for the Richardson flow</p>
+        <div class="math-block">$$
+          \|\Phi_\tau^{(\alpha)}(V)-T_{\tau,u}^{R,(\alpha)}(V)\|_\infty
+          \le C(\tau^2+\tau u^2).
+          $$</div>
+        <p>Finally, the same contraction comparison as in the value-convergence proof yields:</p>
+        <div class="math-block">$$
+          \|V_k-V^{(\alpha)}\|_\infty
+          \le e^{-\beta\tau k}\,\|V_0-V^{(\alpha)}\|_\infty
+          + \frac{C(\tau^2+\tau u^2)}{1-e^{-\beta\tau}}.
+          $$</div>
+        <p>So the value iterate is still controlled by a geometric contraction term plus an accumulated local mismatch
+          term, except the mismatch is now sharper and explicitly depends on $u$.</p>
+
+        <h3 id="q-transfer">6. Transfer from $V$ to $q$</h3>
+        <p>The final step is a triangle inequality that separates approximation and stability:</p>
+        <div class="math-block">$$
+          \|\tilde q_{V_k}^u-q_{V^*}\|_\infty
+          \le
+          \|\tilde q_{V_k}^u-\tilde q_{V^*}^u\|_\infty
+          +
+          \|\tilde q_{V^*}^u-q_{V^*}\|_\infty.
+          $$</div>
+        <p>The first term is controlled by the Lipschitz-in-$V$ bound, and the second term is the Richardson bias at the
+          fixed point. Together they give:</p>
+        <div class="math-block">$$
+          \|\tilde q_{V_k}^u-q_{V^{(\alpha)}}\|_\infty
+          \le \frac{L}{u}\,\|V_k-V^{(\alpha)}\|_\infty + C_2 u^2.
+          $$</div>
+
+        <h3 id="limit-regime">7. Final limit when $\tau/u\to 0$</h3>
+        <p>The Richardson value bound contains a term of order $\tau+u^2$ once the denominator $1-e^{-\rho\tau}$ is
+          expanded, while the $q$-bound multiplies the value error by $1/u$. So the combined error behaves like</p>
+        <div class="math-block">$$
+          \frac{1}{u}(\tau+u^2)+u^2.
+          $$</div>
+        <p>To ensure this goes to zero, it is enough to take $u\to 0$ and $\tau/u\to 0$. In this setting,
+          the learned finite-horizon rate converges to the true infinitesimal advantage-rate.</p>
+      </article>
+    </main>
+    <aside class="quicklinks">
+      <h3>On this page</h3>
+      <ul>
+        <li><a href="#baseline-bias">Baseline bias</a></li>
+        <li><a href="#smoothness">Smoothness</a></li>
+        <li><a href="#richardson">Richardson</a></li>
+        <li><a href="#hamiltonian-bias">Hamiltonian bias</a></li>
+        <li><a href="#value-transfer">Value recursion</a></li>
+        <li><a href="#q-transfer">Transfer to q</a></li>
+        <li><a href="#limit-regime">Final limit</a></li>
+      </ul>
+    </aside>
+  </div>
+</body>
+
+</html>

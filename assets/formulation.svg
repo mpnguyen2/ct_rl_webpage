@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="560" viewBox="0 0 1200 560" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">Formulation pipeline</title>
+  <desc id="desc">Minimal pipeline from fixed-step MDP to controlled SDE, local q signal, Hamiltonian flow, and single-critic actor-critic.</desc>
+  <defs>
+    <linearGradient id="bg" x1="80" y1="50" x2="1120" y2="510" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0B1220"/>
+      <stop offset="1" stop-color="#111827"/>
+    </linearGradient>
+    <linearGradient id="b1" x1="92" y1="110" x2="284" y2="250" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#38BDF8"/>
+      <stop offset="1" stop-color="#2563EB"/>
+    </linearGradient>
+    <linearGradient id="b2" x1="322" y1="110" x2="514" y2="250" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#60A5FA"/>
+      <stop offset="1" stop-color="#3B82F6"/>
+    </linearGradient>
+    <linearGradient id="b3" x1="552" y1="110" x2="744" y2="250" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#A78BFA"/>
+      <stop offset="1" stop-color="#7C3AED"/>
+    </linearGradient>
+    <linearGradient id="b4" x1="782" y1="110" x2="974" y2="250" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#34D399"/>
+      <stop offset="1" stop-color="#059669"/>
+    </linearGradient>
+    <linearGradient id="b5" x1="390" y1="340" x2="810" y2="460" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8B5CF6"/>
+      <stop offset="1" stop-color="#10B981"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#020617" flood-opacity="0.35"/>
+    </filter>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0 0L12 6L0 12Z" fill="#94A3B8"/>
+    </marker>
+  </defs>
+
+  <rect width="1200" height="560" rx="28" fill="#0A0F18"/>
+  <rect x="26" y="22" width="1148" height="516" rx="28" fill="url(#bg)" stroke="#1E293B"/>
+
+  <g filter="url(#shadow)">
+    <rect x="78" y="104" width="180" height="132" rx="22" fill="#0F172A" stroke="#1E293B"/>
+    <rect x="92" y="118" width="152" height="36" rx="18" fill="url(#b1)"/>
+    <text x="168" y="141" text-anchor="middle" fill="white" font-size="15" font-family="Inter, Arial, sans-serif" font-weight="700">Fixed-step MDP</text>
+    <line x1="113" y1="190" x2="223" y2="190" stroke="#475569" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="120" cy="190" r="6" fill="#E2E8F0"/>
+    <circle cx="148" cy="190" r="6" fill="#E2E8F0"/>
+    <circle cx="192" cy="190" r="6" fill="#E2E8F0"/>
+    <circle cx="218" cy="190" r="6" fill="#E2E8F0"/>
+    <text x="168" y="218" text-anchor="middle" fill="#CBD5E1" font-size="15" font-family="Inter, Arial, sans-serif">uniform step</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="308" y="104" width="180" height="132" rx="22" fill="#0F172A" stroke="#1E293B"/>
+    <rect x="322" y="118" width="152" height="36" rx="18" fill="url(#b2)"/>
+    <text x="398" y="141" text-anchor="middle" fill="white" font-size="15" font-family="Inter, Arial, sans-serif" font-weight="700">Controlled SDE</text>
+    <path d="M338 198C356 176 381 214 399 190C417 166 442 204 460 182" stroke="#E2E8F0" stroke-width="4" stroke-linecap="round" fill="none"/>
+    <text x="398" y="218" text-anchor="middle" fill="#CBD5E1" font-size="15" font-family="Inter, Arial, sans-serif">irregular time</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="538" y="104" width="180" height="132" rx="22" fill="#0F172A" stroke="#1E293B"/>
+    <rect x="552" y="118" width="152" height="36" rx="18" fill="url(#b3)"/>
+    <text x="628" y="141" text-anchor="middle" fill="white" font-size="15" font-family="Inter, Arial, sans-serif" font-weight="700">Local signal</text>
+    <circle cx="603" cy="191" r="28" fill="#1E1B4B" stroke="#A78BFA"/>
+    <text x="603" y="198" text-anchor="middle" fill="#F8FAFC" font-size="28" font-family="Georgia, Times New Roman, serif" font-weight="700">q</text>
+    <circle cx="653" cy="191" r="24" fill="#10243D" stroke="#60A5FA"/>
+    <text x="653" y="197" text-anchor="middle" fill="#F8FAFC" font-size="24" font-family="Georgia, Times New Roman, serif" font-weight="700">V</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="768" y="104" width="180" height="132" rx="22" fill="#0F172A" stroke="#1E293B"/>
+    <rect x="782" y="118" width="152" height="36" rx="18" fill="url(#b4)"/>
+    <text x="858" y="141" text-anchor="middle" fill="white" font-size="15" font-family="Inter, Arial, sans-serif" font-weight="700">Hamiltonian flow</text>
+    <circle cx="858" cy="188" r="29" stroke="#34D399" stroke-width="5" opacity="0.95"/>
+    <text x="858" y="196" text-anchor="middle" fill="#F8FAFC" font-size="26" font-family="Georgia, Times New Roman, serif" font-weight="700">V</text>
+  </g>
+
+  <path d="M258 170H308" stroke="#64748B" stroke-width="4" stroke-linecap="round" marker-end="url(#arrow)"/>
+  <path d="M488 170H538" stroke="#64748B" stroke-width="4" stroke-linecap="round" marker-end="url(#arrow)"/>
+  <path d="M718 170H768" stroke="#64748B" stroke-width="4" stroke-linecap="round" marker-end="url(#arrow)"/>
+
+  <g filter="url(#shadow)">
+    <rect x="312" y="328" width="576" height="142" rx="28" fill="#0F172A" stroke="#334155"/>
+    <rect x="460" y="348" width="280" height="34" rx="17" fill="url(#b5)"/>
+    <text x="600" y="370" text-anchor="middle" fill="white" font-size="15" font-family="Inter, Arial, sans-serif" font-weight="700">Single-critic actor-critic</text>
+    <text x="600" y="421" text-anchor="middle" fill="#F8FAFC" font-size="34" font-family="Georgia, Times New Roman, serif" font-weight="700">Q ≈ V + q</text>
+    <text x="600" y="447" text-anchor="middle" fill="#CBD5E1" font-size="16" font-family="Inter, Arial, sans-serif">CT-SAC / CT-TD3</text>
+  </g>
+
+  <path d="M858 236C858 270 780 300 680 328" stroke="#64748B" stroke-width="4" stroke-linecap="round" fill="none" marker-end="url(#arrow)"/>
+  <path d="M628 236C628 276 585 302 548 328" stroke="#64748B" stroke-width="4" stroke-linecap="round" fill="none" marker-end="url(#arrow)"/>
+
+  <rect x="76" y="484" width="180" height="28" rx="14" fill="#10243D"/>
+  <text x="166" y="503" text-anchor="middle" fill="#BFDBFE" font-size="13" font-family="Inter, Arial, sans-serif" font-weight="600">discretization mismatch</text>
+  <rect x="510" y="484" width="180" height="28" rx="14" fill="#1E1B4B"/>
+  <text x="600" y="503" text-anchor="middle" fill="#DDD6FE" font-size="13" font-family="Inter, Arial, sans-serif" font-weight="600">decouple q and V</text>
+  <rect x="944" y="484" width="144" height="28" rx="14" fill="#0A3B2C"/>
+  <text x="1016" y="503" text-anchor="middle" fill="#D1FAE5" font-size="13" font-family="Inter, Arial, sans-serif" font-weight="600">stable update</text>
+</svg>

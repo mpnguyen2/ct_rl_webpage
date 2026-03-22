@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Formulation · Continuous-Time RL</title>
+  <meta name="description"
+    content="From fixed-step MDPs to controlled diffusions, generators, Hamiltonians, and the decoupled value-flow formulation." />
+  <link rel="stylesheet" href="assets/site.css" />
+  <script defer src="assets/site.js"></script>
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+
+<body>
+  <header class="header">
+    <div class="topbar">
+      <a class="brand" href="index.html"><span class="dot"></span><span>Continuous-Time RL</span></a>
+      <nav class="primary-nav">
+        <a href="index.html">Home</a>
+        <a href="formulation.html">Formulation</a>
+        <a href="algorithm.html">Algorithm</a>
+
+        <div class="nav-dropdown">
+          <a href="theory.html" class="nav-dropdown-toggle">Theory</a>
+          <div class="nav-dropdown-menu">
+            <a href="theory/value-convergence.html">Value convergence</a>
+            <a href="theory/q-convergence.html">q-convergence</a>
+            <a href="theory/algorithm-convergence.html">Algorithm convergence</a>
+            <a href="theory/random-time-and-regret.html">Random time &amp; regret</a>
+          </div>
+        </div>
+
+        <a href="experiments.html">Experiments</a>
+        <a href="gallery.html">Gallery</a>
+      </nav>
+      <a class="github-btn" href="https://github.com/mpnguyen2/ct-rl">Codebase</a>
+    </div>
+  </header>
+
+  <div class="page-shell">
+    <main class="content">
+      <article class="article">
+        <h2 id="overview">Formulation</h2>
+        <p class="section-lead">
+          We start from the failure of fixed-step MDP abstractions under mixed time scales, move to controlled
+          diffusions and instantaneous advantage-rate signals, and then replace discrete backups by a Hamiltonian value
+          flow.
+        </p>
+
+        <div class="figure-box">
+          <img src="assets/formulation.svg" alt="Formulation visual summary." />
+          <div class="caption">
+            Move from fixed-step MDPs to controlled diffusions, replaces the degenerate small-step $Q$-function with
+            the instantaneous signal $q_V(x,a)$, and updates the value function through a Hamiltonian flow rather than a
+            discrete-time max backup.
+          </div>
+        </div>
+
+        <h3 id="mdp-sde">From fixed-step MDPs to controlled diffusions</h3>
+        <p>
+          The starting point is the usual discrete-time Markov decision process with step size $\Delta$:
+        </p>
+        <div class="math-block large">
+          $$X_{t+\Delta}^{\Delta}=X_t^{\Delta}+f^{\Delta}(X_t^{\Delta},a_t), \qquad a_t\sim \pi_{\alpha}(\cdot\mid
+          X_t^{\Delta}).$$
+        </div>
+        <p>
+          When the increment is approximately linear in $\Delta$, the small-step limit becomes an ODE after averaging
+          over randomized actions. If one also adds mean-zero perturbations with variance of order $\Delta$, the
+          accumulated fluctuations converge to Brownian motion and the limit becomes an Itô diffusion. This leads to the
+          controlled SDE used throughout the work:
+        </p>
+        <div class="math-block large">
+          $$dX_t=b(X_t,a_t)\,dt+\sigma(X_t,a_t)\,dW_t, \qquad X_0\sim \mu.$$
+        </div>
+        <p>
+          Under a Markov feedback policy $a_t\sim\pi(\cdot\mid X_t)$, the entropy-regularized objective is
+        </p>
+        <div class="math-block">
+          $$V^{(\alpha)}(x;\pi)=\mathbb{E}\!\left[\int_0^\infty e^{-\beta t}\bigl(r(X_t,a_t)-\alpha\log \pi(a_t\mid
+          X_t)\bigr)dt\,\middle|\,X_0=x\right].$$
+        </div>
+        <p>
+          This stochastic-control viewpoint is the right setting when trajectories mix very short and much longer
+          holding intervals, because the learning problem should depend on the underlying continuous-time system, not on
+          a single arbitrary discretization.
+        </p>
+
+        <h3 id="generator">Generators and Hamiltonians</h3>
+        <p>
+          For a fixed action $a$, the controlled infinitesimal generator acts on a smooth test function $\varphi$ by:
+        </p>
+        <div class="math-block">
+          $$(L^a\varphi)(x)=b(x,a)\cdot\nabla\varphi(x)+\frac12\,\mathrm{Tr}\!\bigl(\sigma(x,a)\sigma(x,a)^\top
+          \nabla^2\varphi(x)\bigr).$$
+        </div>
+        <p>
+          This is the continuous-time analogue of a one-step Bellman drift. Using it, the action-wise Hamiltonian
+          becomes:
+        </p>
+        <div class="math-block">
+          $$H_a(V)(x)=(L^aV)(x)+r(x,a)-\beta V(x).$$
+        </div>
+        <p>
+          The hard Hamiltonian is $H^{(0)}(V)(x)=\sup\limits_{a\in\mathcal A} H_a(V)(x)$, while the entropy-regularized
+          soft Hamiltonian is:
+        </p>
+        <div class="math-block">
+          $$H^{(\alpha)}(V)(x)=\alpha\log\int_{\mathcal A}\exp\!\left(\frac{H_a(V)(x)}{\alpha}\right)da.$$
+        </div>
+        <p>
+          Under standard assumptions, the optimal value function satisfies the HJB equation
+          $H^{(\alpha)}(V^{(\alpha)})(x)=0$. So the Hamiltonian is the object that encodes local control improvement in
+          continuous-time.
+        </p>
+
+        <h3 id="q-function">Why the continuous-time signal is $q$, not $Q$</h3>
+        <p>
+          In discrete-time, the action-value function $Q$ ranks actions directly and supports updates such as
+          $V(x)=\max_a Q(x,a)$. In continuous-time, however, the ordinary $Q$-function collapses to the value function
+          as the step size shrinks, so the action ranking disappears in the limit. To restore action dependence, we need
+          the instantaneous advantage-rate:
+        </p>
+        <div class="math-block">
+          $$q^{(\alpha)}(x,a;\pi)=\lim_{u\to 0}\frac{Q_u^{(\alpha)}(x,a;\pi)-V^{(\alpha)}(x;\pi)}{u}.$$
+        </div>
+        <p>
+          A small-time expansion gives the local identity
+        </p>
+        <div class="math-block">
+          $$q_V(x,a)=H_a(V)(x)=r(x,a)+(L^aV)(x)-\beta V(x).$$
+        </div>
+        <p>
+          So the meaningful continuous-time action signal is not the limiting $Q$-function, but the derivative-like
+          object $q_V(x,a)$.
+        </p>
+        <div class="callout dark">
+          <strong>Note.</strong>
+          In variational viewpoint, $H^{(\alpha)}(V)$ is the optimal entropy-regularized expectation over policies, and
+          the maximizer is the Boltzmann policy induced by $q_V$.
+        </div>
+
+        <h3 id="td-failure">Why naive TD regression fails under diffusion noise</h3>
+        <p>
+          The second obstacle is more subtle than the degeneration of $Q$. A one-step TD residual at horizon $u$ looks
+          like
+        </p>
+        <div class="math-block">
+          $$\delta_u\approx e^{-\beta u}V(X_{t+u})+u\,r(X_t,a_t)-V(X_t).$$
+        </div>
+        <p>
+          In a fixed-step MDP, minimizing $\mathbb E[\delta_u^2]$ enforces Bellman consistency. Under diffusion
+          dynamics, the discounted value increment contains both a Bellman drift term and a stochastic martingale term.
+          Applying Itô's lemma gives
+        </p>
+        <div class="math-block large">
+          $$d\bigl(e^{-\beta t}V(X_t)\bigr)+e^{-\beta t}r(X_t,a_t)dt = e^{-\beta t}\Big((L^{a_t}V)(X_t)-\beta
+          V(X_t)+r(X_t,a_t)\Big)dt + e^{-\beta t}\nabla V(X_t)\,\sigma(X_t,a_t)\,dW_t.$$
+        </div>
+        <p>
+          As $u\to 0$, the drift is $O(u)$ but the stochastic increment is $O(\sqrt u)$. Squaring the residual can
+          therefore fit the wrong object: noise variation rather than the Bellman drift. This is why previous
+          continuous-time methods use martingale characterizations instead of transplanting discrete-time TD regression
+          directly.
+        </p>
+        <div class="callout">
+          <strong>Position relative to prior work.</strong>
+          Earlier stochastic-control formulations introduced the little-$q$ signal and martingale conditions, but in
+          practice they still couple $V$ and $q$ into a difficult joint optimization problem. The formulation here aims
+          to keep the same continuous-time foundation while making optimization modular.
+        </div>
+
+        <h3 id="decoupling">Decoupling the learning problem</h3>
+        <p>
+          Instead of enforcing a single coupled objective over $(V,q)$, the paper breaks learning into an iterative
+          sequence:
+        </p>
+        <div class="math-block">
+          $$V_0 \Rightarrow q_0 \Rightarrow V_1 \Rightarrow q_1 \Rightarrow \cdots$$
+        </div>
+        <div class="step-grid">
+          <div class="step">
+            <div class="badge">1</div>
+            <div>
+              <h4>Learn $q$ with $V$ fixed</h4>
+              <p>
+                Once $V$ is fixed, the correct local action signal is already determined by the generator:
+                $q_V(x,a)=r(x,a)+(L^aV)(x)-\beta V(x)$. The remaining challenge is to estimate it in a model-free way.
+              </p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="badge">2</div>
+            <div>
+              <h4>Update $V$ by a flow, not a backup</h4>
+              <p>
+                In continuous time, $q$ is an instantaneous rate rather than a value. If one writes a short-horizon
+                return as $Q_u(x,a)\approx V(x)+u\,q(x,a)$, the usual discrete-time hard or soft backup becomes
+                degenerate as $u\to 0$. There is also a unit mismatch: $V$ behaves like a value or displacement, while
+                $q$ behaves like a derivative. So the value update must be interpreted as a flow indexed by an
+                algorithmic step size $\tau$, not as a direct max or softmax backup.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <h3 id="flow">Hamiltonian flow and Picard iteration</h3>
+        <p>
+          In discrete-time RL, one usually recovers $V$ from $Q$ through a hard or soft maximization:
+        </p>
+        <div class="math-block">
+          $$V(x)=\max_a Q(x,a), \qquad \text{or} \qquad V(x)=\alpha\log\int_{\mathcal
+          A}\exp\!\big(Q(x,a)/\alpha\big)\,da.$$
+        </div>
+
+        <p>
+          In continuous-time, however, the local signal is not a value but an instantaneous rate. If a short-horizon
+          return is written as $Q_u(x,a)\approx V(x)+u\,q(x,a)$ for very small $u$, then the soft backup becomes
+        </p>
+        <div class="math-block">
+          $$V(x)=\alpha\log\int_{\mathcal A}\exp\!\big((V(x)+u\,q(x,a))/\alpha\big)\,da
+          =V(x)+\alpha\log\int_{\mathcal A}\exp\!\big(u\,q(x,a)/\alpha\big)\,da.$$
+        </div>
+
+        <p>
+          As $u\to 0$, the increment vanishes, so the backup collapses to a trivial identity, showing that direct
+          discrete-time max or softmax updates do not survive the infinitesimal limit.
+        </p>
+
+        <p>
+          To extract a meaningful update, define the small-horizon soft increment:
+        </p>
+        <div class="math-block">
+          $$V_u(x):=V(x)+\alpha\log\int_{\mathcal A}\exp\!\big(u\,q(x,a)/\alpha\big)\,da.$$
+        </div>
+
+        <p>
+          The increment still goes to zero as $u\to 0$, but it admits a useful upper bound. Writing
+          $\exp(u\,q/\alpha)=(\exp(q/\alpha))^u$, and using Jensen/Hölder for $0 < u < 1$: </p>
+            <div class="math-block">
+              $$\int_{\mathcal A}\exp\!\big(u\,q(x,a)/\alpha\big)\,da
+              =\int_{\mathcal A}\big(\exp(q(x,a)/\alpha)\big)^u\,da
+              \le \left(\int_{\mathcal A}\exp(q(x,a)/\alpha)\,da\right)^u,$$
+            </div>
+
+            <p>
+              So after taking out $\alpha\log$, we get:
+            </p>
+            <div class="math-block">
+              $$V_u(x)-V(x)\le \alpha u \log\int_{\mathcal A}\exp\!\big(q(x,a)/\alpha\big)\,da.$$
+            </div>
+
+            <p>
+              If one writes a soft backup increment over a very small horizon $u$, the increment itself vanishes as
+              $u\to 0$. The key move is to divide by $u$ and pass to a flow:
+            </p>
+
+            <div class="math-block">
+              $$\frac{d}{d\tau}V_\tau(x)=\mathcal Q^{(\alpha)}(q_{V_\tau})(x), \qquad \mathcal
+              Q^{(\alpha)}(q)(x)=\alpha\log\int_{\mathcal A} e^{q(x,a)/\alpha}\,da.$$
+            </div>
+            <p>
+              Since $q_{V_\tau}(x,a)=H_a(V_\tau)(x)$, the aggregation is exactly the Hamiltonian and the flow becomes:
+            </p>
+            <div class="math-block">
+              $$\frac{d}{d\tau}V_\tau(x)=H^{(\alpha)}(V_\tau)(x).$$
+            </div>
+            <p>
+              A forward-Euler step then yields the Picard-Hamiltonian iteration
+            </p>
+            <div class="math-block">
+              $$V^{\mathrm{new}}(x)=V(x)+\tau H^{(\alpha)}(V)(x)=T_\tau^{(\alpha)}(V)(x).$$
+            </div>
+            <p>
+              Hence, our formulation replaces a degenerate discrete backup by a continuous-time value flow.
+            </p>
+            <div class="callout dark">
+              <strong>Note.</strong>
+              We emphasize that $u$ and $\tau$ play different roles. The environment supplies transitions with
+              durations $u$, while the algorithm updates the value flow using step size $\tau$. Stability depends on
+              treating these as separate discretizations.
+            </div>
+
+            <h3 id="model-free">Model-free $q$-estimation and Richardson correction</h3>
+            <p>
+              The generator formula is exact, but it is not directly model-free. So we estimate the local rate by a
+              short-horizon value increment:
+            </p>
+            <div class="math-block">
+              $$q_V^u(x,a)=\frac{e^{-\beta u}\,\mathbb E\!\left[V(X_{t+u})\mid X_t=x,a_t=a\right]-V(x)}{u}+r(x,a).$$
+            </div>
+            <p>
+              This converges to $q_V(x,a)$ as $u\to 0$. To further reduce discretization bias, we apply Richardson
+              extrapolation:
+            </p>
+            <div class="math-block">
+              $$\tilde q_V^u(x,a)=2q_V^{u/2}(x,a)-q_V^u(x,a).$$
+            </div>
+            <p>
+              These approximations induce finite-horizon Hamiltonians $H_u^{(\alpha)}$ and $\tilde H_u^{(\alpha)}$,
+              which in
+              turn produce discretized value-flow iterations converging to the same optimal objects in the small-step
+              limit.
+            </p>
+
+            <h3 id="single-critic">From formulation to implementation</h3>
+            <p>
+              Conceptually, we use separate value and instantenaous advantage-rate objects. However, our final practical
+              algorithm will compress them into a single critic:
+            </p>
+            <div class="math-block">
+              $$Q_k(x,a)\approx V_k(x)+q_k(x,a).$$
+            </div>
+            <p>
+              This numerical parameterization lets one network carry both value-like and action-sensitive information.
+              The
+              actor is then updated by the Boltzmann policy induced by the critic, and the critic target inherits the
+              structure of the decoupled flow.
+            </p>
+      </article>
+    </main>
+
+    <aside class="quicklinks">
+      <h3>On this page</h3>
+      <ul>
+        <li><a href="#mdp-sde">MDP → SDE</a></li>
+        <li><a href="#generator">Generator & Hamiltonian</a></li>
+        <li><a href="#q-function">Instantaneous $q$</a></li>
+        <li><a href="#td-failure">Why TD fails</a></li>
+        <li><a href="#decoupling">Decoupling</a></li>
+        <li><a href="#flow">Hamiltonian flow</a></li>
+        <li><a href="#model-free">Model-free $q$</a></li>
+        <li><a href="#single-critic">Single critic</a></li>
+      </ul>
+    </aside>
+  </div>
+
+</body>
+
+</html>

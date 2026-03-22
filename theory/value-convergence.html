@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Value convergence · Theory detail</title>
+  <meta name="description"
+    content="Detailed summary of the appendix proof for value convergence in continuous-time RL." />
+  <link rel="stylesheet" href="../assets/site.css" />
+  <script defer src="../assets/site.js"></script>
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <style>
+    .theory-hero {
+      margin: 1.1rem 0 1.6rem;
+      padding: 1.2rem 1.2rem 1rem;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: linear-gradient(180deg, rgba(109, 40, 217, 0.08), rgba(15, 23, 42, 0.02));
+      box-shadow: var(--shadow);
+    }
+
+    .theory-hero-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.95fr;
+      gap: 18px;
+      align-items: center;
+    }
+
+    .mini-pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 0.85rem 0 0;
+    }
+
+    .mini-pill {
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.78);
+      font-size: 0.93rem;
+      color: var(--muted);
+    }
+
+    .proof-roadmap {
+      width: 100%;
+      max-width: 520px;
+      margin-left: auto;
+      display: block;
+    }
+
+    .note-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin: 1rem 0 1.3rem;
+    }
+
+    .note-card {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 1rem 1rem 0.9rem;
+      background: rgba(255, 255, 255, 0.84);
+    }
+
+    .note-card h4 {
+      margin: 0 0 0.5rem;
+      font-size: 1rem;
+    }
+
+    .result-card {
+      margin: 1rem 0 1.5rem;
+      padding: 1rem 1.1rem;
+      border: 1px solid rgba(37, 99, 235, 0.22);
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(37, 99, 235, 0.08), rgba(37, 99, 235, 0.03));
+    }
+
+    .result-card h3 {
+      margin-top: 0;
+    }
+
+    .step-list {
+      padding-left: 1.2rem;
+    }
+
+    .step-list li {
+      margin-bottom: 0.45rem;
+    }
+
+    .math-block {
+      overflow-x: auto;
+    }
+
+    @media (max-width: 900px) {
+
+      .theory-hero-grid,
+      .note-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .proof-roadmap {
+        margin: 0 auto;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="header">
+    <div class="topbar">
+      <a class="brand" href="../index.html"><span class="dot"></span><span>Continuous-Time RL</span></a>
+      <nav class="primary-nav">
+        <a href="../index.html">Home</a>
+        <a href="../formulation.html">Formulation</a>
+        <a href="../algorithm.html">Algorithm</a>
+        <div class="nav-dropdown">
+          <a href="../theory.html" class="nav-dropdown-toggle">Theory</a>
+          <div class="nav-dropdown-menu">
+            <a href="value-convergence.html">Value convergence</a>
+            <a href="q-convergence.html">q-convergence</a>
+            <a href="algorithm-convergence.html">Algorithm convergence</a>
+            <a href="random-time-and-regret.html">Random time &amp; regret</a>
+          </div>
+        </div>
+        <a href="../experiments.html">Experiments</a>
+        <a href="../gallery.html">Gallery</a>
+      </nav>
+      <a class="github-btn" href="https://github.com/mpnguyen2/ct-rl">Codebase</a>
+    </div>
+  </header>
+  <div class="page-shell">
+    <main class="content">
+      <article class="article">
+        <h2 id="value-page">Value convergence</h2>
+        <p class="section-lead">We present the proof of the ideal Picard-Hamiltonian iteration
+          $V_{k+1}=T_\tau^{(\alpha)}(V_k)$. The main idea is simple but powerful: compare the explicit Hamiltonian step
+          to a short-horizon dynamic-programming semigroup that is a strict sup-norm contraction, and treat the
+          Hamiltonian update as a controlled local approximation.</p>
+
+        <section class="theory-hero" aria-label="Value convergence proof roadmap">
+          <div class="theory-hero-grid">
+            <div>
+              <h3 style="margin-top:0;">Proof roadmap</h3>
+              <p>
+                We organize the argument into three layers: define a contraction reference operator
+                $\Phi_\tau^{(\alpha)}$, prove that one Hamiltonian step matches that operator up to order $\tau^{3/2}$,
+                and then propagate the local mismatch through a recursive error bound.
+              </p>
+              <div class="mini-pill-row">
+                <span class="mini-pill">Reference: $\Phi_\tau^{(\alpha)}$</span>
+                <span class="mini-pill">Update: $T_\tau^{(\alpha)}(V)=V+\tau H^{(\alpha)}(V)$</span>
+                <span class="mini-pill">Local error: $\mathcal O(\tau^{3/2})$</span>
+              </div>
+            </div>
+
+            <svg class="proof-roadmap" viewBox="0 0 560 310" xmlns="http://www.w3.org/2000/svg" role="img"
+              aria-label="Flow diagram for the value convergence proof">
+              <defs>
+                <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#eff6ff" />
+                  <stop offset="100%" stop-color="#dbeafe" />
+                </linearGradient>
+                <linearGradient id="g2" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#f5f3ff" />
+                  <stop offset="100%" stop-color="#ede9fe" />
+                </linearGradient>
+              </defs>
+
+              <!-- top row -->
+              <rect x="20" y="24" width="165" height="92" rx="18" fill="url(#g1)" stroke="#93c5fd" />
+              <text x="102.5" y="53" text-anchor="middle" font-size="14" font-weight="700" fill="#1f2937">Contraction
+                reference</text>
+              <text x="102.5" y="78" text-anchor="middle" font-size="13" fill="#334155">Dynamic-programming</text>
+              <text x="102.5" y="96" text-anchor="middle" font-size="13" fill="#334155">semigroup</text>
+
+              <rect x="205" y="24" width="145" height="92" rx="18" fill="url(#g2)" stroke="#c4b5fd" />
+              <text x="277.5" y="53" text-anchor="middle" font-size="14" font-weight="700" fill="#1f2937">Local
+                expansion</text>
+              <text x="277.5" y="78" text-anchor="middle" font-size="13" fill="#334155">Fixed action +</text>
+              <text x="277.5" y="96" text-anchor="middle" font-size="13" fill="#334155">fixed policy</text>
+
+              <rect x="370" y="24" width="170" height="92" rx="18" fill="#f8fafc" stroke="#cbd5e1" />
+              <text x="455" y="53" text-anchor="middle" font-size="14" font-weight="700" fill="#1f2937">Per-step
+                mismatch</text>
+              <text x="455" y="78" text-anchor="middle" font-size="13" fill="#334155">Small operator gap</text>
+              <text x="455" y="96" text-anchor="middle" font-size="13" fill="#334155">is small</text>
+
+              <!-- bottom row -->
+              <rect x="105" y="180" width="165" height="92" rx="18" fill="#f8fafc" stroke="#cbd5e1" />
+              <text x="187.5" y="209" text-anchor="middle" font-size="14" font-weight="700" fill="#1f2937">Error
+                recursion</text>
+              <text x="187.5" y="234" text-anchor="middle" font-size="13" fill="#334155">Local error recursion</text>
+              <text x="187.5" y="252" text-anchor="middle" font-size="13" fill="#334155">plus contraction</text>
+
+              <rect x="305" y="180" width="170" height="92" rx="18" fill="#ecfeff" stroke="#67e8f9" />
+              <text x="390" y="209" text-anchor="middle" font-size="14" font-weight="700" fill="#1f2937">Final
+                theorem</text>
+              <text x="390" y="234" text-anchor="middle" font-size="13" fill="#334155">Geometric decay</text>
+              <text x="390" y="252" text-anchor="middle" font-size="13" fill="#334155">plus discretization error</text>
+
+              <!-- arrows -->
+              <path d="M185 70 H205" stroke="#64748b" stroke-width="2.2" fill="none" />
+              <path d="M350 70 H370" stroke="#64748b" stroke-width="2.2" fill="none" />
+              <path d="M455 116 V150 H187.5 V180" stroke="#64748b" stroke-width="2.2" fill="none" />
+              <path d="M270 226 H305" stroke="#64748b" stroke-width="2.2" fill="none" />
+            </svg>
+          </div>
+        </section>
+
+        <div class="note-grid">
+          <div class="note-card">
+            <h4>Function space</h4>
+            <p>The proof works on bounded continuous value functions $\mathcal D=C_b(\mathbb R^d)$ with sup norm
+              $\|V\|_\infty$, and uses the controlled diffusion, generator, Hamiltonian, and short-horizon semigroup
+              introduced in the appendix preliminaries.</p>
+          </div>
+          <div class="note-card">
+            <h4>Assumptions</h4>
+            <p>Global Lipschitz dynamics, bounded Lipschitz reward, and enough regularity so that $L^aV$ is also
+              Lipschitz uniformly in $a$. These assumptions allow the short-time expansion with $\tau^{3/2}$ estimate.
+            </p>
+          </div>
+        </div>
+
+        <div class="result-card">
+          <h3 style="margin-bottom:0.55rem;">Main theorem on this page</h3>
+          <div class="math-block">$$
+            \|V_k - V^{(\alpha)}\|_\infty
+            \le C_0 e^{-\beta \tau k}
+            + \frac{C_1\tau^{3/2}}{1-e^{-\beta\tau}}.
+            $$</div>
+          <p style="margin-bottom:0;">The first term comes from contraction of the semigroup iteration. The second term
+            is the accumulated price of replacing that semigroup by one explicit Picard--Hamiltonian step.</p>
+        </div>
+
+        <h3 id="setup">1. Setup and reference operators</h3>
+        <p>The appendix starts from the entropy-regularized short-horizon dynamic-programming operator</p>
+        <div class="math-block">$$
+          (\Phi_\tau^{(\alpha)}V)(x)
+          :=
+          \sup_{\pi}\,
+          \mathbb E_x^\pi\!\left[
+          \int_0^\tau e^{-\beta t}
+          \big(r(X_t,a_t)-\alpha\log\pi(a_t\mid X_t)\big)\,dt
+          + e^{-\beta\tau}V(X_\tau)
+          \right].
+          $$</div>
+        <p>It compares this to the ideal Picard-Hamiltonian step</p>
+        <div class="math-block">$$
+          (T_\tau^{(\alpha)}V)(x):=V(x)+\tau H^{(\alpha)}(V)(x),
+          $$</div>
+        <p>where the Hamiltonian is built from the instantaneous advantage-rate</p>
+        <div class="math-block">$$
+          q_V(x,a)=r(x,a)+(L^aV)(x)-\beta V(x).
+          $$</div>
+        <p>The strategy is to prove that $\Phi_\tau^{(\alpha)}$ is easy to control globally, while $T_\tau^{(\alpha)}$
+          is easy to compute locally.</p>
+
+        <h3 id="phi">2. Why the semigroup is the contraction reference</h3>
+        <p>For any two bounded value functions $V$ and $W$, the running reward terms cancel when comparing the two
+          semigroup evaluations. Only the terminal term remains, so the proof gets the clean estimate</p>
+        <div class="math-block">$$
+          \|\Phi_\tau^{(\alpha)}(V)-\Phi_\tau^{(\alpha)}(W)\|_\infty
+          \le e^{-\beta\tau}\,\|V-W\|_\infty.
+          $$</div>
+        <p>That immediately implies:</p>
+        <ol class="step-list">
+          <li>$\Phi_\tau^{(\alpha)}$ is a strict contraction on the sup norm.</li>
+          <li>It has a unique fixed point.</li>
+          <li>That fixed point is the entropy-regularized value function $V^{(\alpha)}$.</li>
+          <li>Its iterates converge geometrically:</li>
+        </ol>
+        <div class="math-block">$$
+          \| (\Phi_\tau^{(\alpha)})^{(k)}(V_0)-V^{(\alpha)}\|_\infty
+          \le e^{-\beta\tau k}\,\|V_0-V^{(\alpha)}\|_\infty.
+          $$</div>
+
+        <h3 id="local-expansion">3. Local expansion: from diffusion dynamics to a one-step mismatch</h3>
+        <p>The local analysis has two parts.</p>
+        <div class="note-card">
+          <h4>Fixed action</h4>
+          <p>Dynkin's formula expands the terminal term under constant action $a$, while Lipschitz regularity of
+            $L^aV$ and small-time moment bounds control the remainder. This yields</p>
+          <div class="math-block">$$
+            (\Phi_\tau^a V)(x)=V(x)+\tau q_V(x,a)+R_\tau^a(V)(x),
+            \qquad
+            \sup_{x,a}|R_\tau^a(V)(x)|\le C\tau^{3/2}.
+            $$</div>
+        </div>
+        <div class="note-card">
+          <h4>Fixed policy</h4>
+          <p>Under the relaxed diffusion associated with a policy $\pi$, the same short-time argument gives</p>
+          <div class="math-block">$$
+            (\Phi_\tau^{\pi,(\alpha)}V)(x)
+            =
+            V(x)+\tau\Big(\tilde r^{(\alpha)}(x;\pi)+(L^\pi V)(x)-\beta V(x)\Big)+R_\tau^{\pi,(\alpha)}(V)(x),
+            $$</div>
+          <p>again with a uniform $\mathcal O(\tau^{3/2})$ remainder.</p>
+        </div>
+        <p>Now the entropy-KL identity turns the policy supremum into the soft Hamiltonian. That turns the
+          fixed-policy expansion into a global operator comparison:</p>
+        <div class="math-block">$$
+          \Phi_\tau^{(\alpha)}(V)
+          =
+          V+\tau H^{(\alpha)}(V)+R_\tau^{(\alpha)}(V),
+          \qquad
+          \|R_\tau^{(\alpha)}(V)\|_\infty\le C_\alpha\tau^{3/2}.
+          $$</div>
+        <p>Equivalently,</p>
+        <div class="math-block">$$
+          \|\Phi_\tau^{(\alpha)}(V)-T_\tau^{(\alpha)}(V)\|_\infty
+          \le C_\alpha\tau^{3/2}.
+          $$</div>
+        <h3 id="recursion">4. Error recursion</h3>
+        <p>Let</p>
+        <div class="math-block">$$
+          W_{k+1}:=\Phi_\tau^{(\alpha)}(W_k),
+          \qquad
+          W_0:=V_0,
+          $$</div>
+        <p>and define the difference between the explicit Hamiltonian iterate and the semigroup iterate by</p>
+        <div class="math-block">$$
+          \Delta_k:=V_k-W_k.
+          $$</div>
+        <p>Then one step of algebra gives</p>
+        <div class="math-block">$$
+          \begin{aligned}
+          \Delta_{k+1}
+          &=T_\tau^{(\alpha)}(V_k)-\Phi_\tau^{(\alpha)}(W_k)\\
+          &=\big(T_\tau^{(\alpha)}(V_k)-\Phi_\tau^{(\alpha)}(V_k)\big)
+          +\big(\Phi_\tau^{(\alpha)}(V_k)-\Phi_\tau^{(\alpha)}(W_k)\big).
+          \end{aligned}
+          $$</div>
+        <p>The first term is the local mismatch; the second is contracted by the semigroup. Therefore</p>
+        <div class="math-block">$$
+          \|\Delta_{k+1}\|_\infty
+          \le C_\alpha\tau^{3/2}+e^{-\beta\tau}\,\|\Delta_k\|_\infty.
+          $$</div>
+        <p>Because $\Delta_0=0$, unrolling the recursion yields</p>
+        <div class="math-block">$$
+          \|\Delta_k\|_\infty
+          \le \frac{C_\alpha\tau^{3/2}}{1-e^{-\beta\tau}}.
+          $$</div>
+        <p>So the explicit Hamiltonian scheme never drifts too far from the exact contraction iteration.</p>
+
+        <h3 id="final-bound">5. Final convergence bound and interpretation</h3>
+        <p>By triangle inequality,</p>
+        <div class="math-block">$$
+          \|V_k-V^{(\alpha)}\|_\infty
+          \le \|V_k-W_k\|_\infty + \|W_k-V^{(\alpha)}\|_\infty.
+          $$</div>
+        <p>Insert the two bounds already proved:</p>
+        <div class="math-block">$$
+          \|V_k-V^{(\alpha)}\|_\infty
+          \le e^{-\beta\tau k}\,\|V_0-V^{(\alpha)}\|_\infty
+          + \frac{C_\alpha\tau^{3/2}}{1-e^{-\beta\tau}}.
+          $$</div>
+        <p></p>The interpretation is clear:</p>
+        <ul>
+          <li>the term $e^{-\beta\tau k}$ is inherited from the contraction of dynamic programming,</li>
+          <li>the term $\tau^{3/2}/(1-e^{-\beta\tau})$ is the accumulated discretization error from using the explicit
+            Picard-Hamiltonian step instead of the exact short-horizon semigroup.</li>
+        </ul>
+        <p>Since $1-e^{-\beta\tau}=\beta\tau+\mathcal O(\tau^2)$, the remainder behaves like $\mathcal O(\tau^{1/2})$
+          for small $\tau$. So the scheme converges to the correct value function as the flow discretization step $\tau$
+          shrinks.</p>
+      </article>
+    </main>
+    <aside class="quicklinks">
+      <h3>On this page</h3>
+      <ul>
+        <li><a href="#setup">Setup</a></li>
+        <li><a href="#phi">Contraction reference</a></li>
+        <li><a href="#local-expansion">Local expansion</a></li>
+        <li><a href="#recursion">Error recursion</a></li>
+        <li><a href="#final-bound">Final bound</a></li>
+      </ul>
+    </aside>
+  </div>
+</body>
+
+</html>

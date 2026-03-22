@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Continuous-Time RL for Irregular Decision Times</title>
+  <meta name="description" content="Website for decoupled continuous-time actor–critic with Hamiltonian flow." />
+  <link rel="stylesheet" href="assets/site.css" />
+  <script defer src="assets/site.js"></script>
+  <script>
+    window.MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] }, svg: { fontCache: 'global' } };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+
+<body>
+  <header class="header">
+    <div class="topbar">
+      <a class="brand" href="index.html"><span class="dot"></span><span>Continuous-Time RL</span></a>
+      <nav class="primary-nav">
+        <a href="index.html">Home</a>
+        <a href="formulation.html">Formulation</a>
+        <a href="algorithm.html">Algorithm</a>
+
+        <div class="nav-dropdown">
+          <a href="theory.html" class="nav-dropdown-toggle">Theory</a>
+          <div class="nav-dropdown-menu">
+            <a href="theory/value-convergence.html">Value convergence</a>
+            <a href="theory/q-convergence.html">q-convergence</a>
+            <a href="theory/algorithm-convergence.html">Algorithm convergence</a>
+            <a href="theory/random-time-and-regret.html">Random time &amp; regret</a>
+          </div>
+        </div>
+
+        <a href="experiments.html">Experiments</a>
+        <a href="gallery.html">Gallery</a>
+      </nav>
+      <a class="github-btn" href="https://github.com/mpnguyen2/ct-rl">Codebase</a>
+    </div>
+  </header>
+
+  <div class="hero">
+    <div class="hero-inner">
+      <div>
+        <h1 class="title">Decoupled Continuous-Time Reinforcement Learning via Hamiltonian Flow</h1>
+        <div class="byline">
+          <span>Minh Nguyen</span>
+          <span>Google, University of Texas at Austin</span>
+        </div>
+        <p class="subtitle">
+          Many decision problems evolve in continuous time, but most reinforcement learning algorithms still rely on
+          fixed-step Bellman updates.
+          This work develops a decoupled continuous-time actor-critic framework that learns a local advantage-rate
+          signal $q(x,a)$ and updates the value function through a Hamiltonian flow, leading to both rigorous
+          convergence guarantees and strong empirical performance under irregular decision times.
+        </p>
+        <div class="hero-links">
+          <a href="formulation.html">Read the formulation</a>
+          <a href="theory.html">See the theory</a>
+          <a href="experiments.html">View experiments</a>
+          <a href="gallery.html">Browse gallery</a>
+        </div>
+      </div>
+      <div class="hero-art">
+        <img src="assets/hero-ct-flow.svg"
+          alt="Irregular decision times leading to local q-learning, Hamiltonian flow, and a single-critic continuous-time actor-critic update." />
+      </div>
+    </div>
+  </div>
+
+  <div class="page-shell">
+    <main class="content">
+      <article class="article">
+
+        <h3 id="why">Why continuous-time matters?</h3>
+        <div class="card-grid">
+          <section class="card">
+            <h3>Markets</h3>
+            <p>
+              Rebalancing happens when signals arrive, positions drift, or risk changes, so trajectories naturally mix
+              very short and much longer holding intervals even when prices are observed at a fine resolution.
+            </p>
+          </section>
+          <section class="card">
+            <h3>Robotics</h3>
+            <p>
+              Stable movement may tolerate coarse control, but contact changes and balance recovery often require much
+              smaller corrective steps. A single fixed-step Bellman abstraction is a poor fit for this setup.
+            </p>
+          </section>
+          <section class="card">
+            <h3>Diffusion noise</h3>
+            <p>
+              In continuous-time, the value increment contains both Bellman drift and stochastic martingale variation.
+              As the step size shrinks, the noise term can dominate naive TD regression unless the update is redesigned.
+            </p>
+          </section>
+        </div>
+        <br />
+        <section id="questions" class="rq-wrap">
+          <h3>Research Questions</h3>
+          <details class="rq-item" open>
+            <summary>Why do fixed-step Bellman updates become unreliable under continuous-time settings?</summary>
+            <div class="rq-panel">
+              With large $\Delta t$, a fixed-step model can miss important dynamics between decisions. With very small
+              $\Delta t$, Bellman targets change only weakly from one step to the next, making learning signals fragile
+              and optimization sensitive to noise. More fundamentally, when trajectories mix multiple time scales, the
+              learned update can depend more on discretization than on the underlying continuous-time control problem
+              itself.
+            </div>
+          </details>
+
+          <details class="rq-item">
+            <summary>What should reinforcement learning look like when the environment evolves continuously?</summary>
+            <div class="rq-panel">
+              The ordinary discrete-time $Q$-function collapses to $V$ as $\Delta t \to 0$. Recent continuous-time RL
+              addresses this by moving to stochastic control and replacing the degenerate small-step $Q$-function with
+              the instantaneous advantage-rate function $q(x,a)$. But a major difficulty remains: under diffusion
+              dynamics, minimizing a naive TD loss can fit Brownian-noise variance terms rather than the Bellman drift.
+              Existing techniques rely on martingale-based objectives or orthogonality conditions, which couple $V$ and
+              $q$ into a single optimization problem and make practical training difficult.
+            </div>
+          </details>
+
+          <details class="rq-item">
+            <summary>How can we keep the stochastic-control foundation without coupled martingale optimization?
+            </summary>
+            <div class="rq-panel">
+              Decouple the problem. First learn the local action signal $q_V(x,a)$ for a fixed value function $V$.
+              Then update $V$ not through a discrete-time max backup, but through a Hamiltonian-driven flow.
+              This yields a modular continuous-time actor-critic method that remains aligned with stochastic-control
+              theory while being practical for modern off-policy training.
+            </div>
+          </details>
+
+          <details class="rq-item">
+            <summary>How did our method differ from existing approaches?
+            </summary>
+            <div class="rq-panel">
+              Standard discrete-time algorithms such as SAC, TD3, TRPO, and PPO remain highly effective, but they are
+              fundamentally built around fixed-step MDPs and become sensitive when
+              $\Delta t$ is very small or varies across samples. Earlier continuous-time approaches often relied on
+              deterministic ODE models, closed-form dynamics, or other structural assumptions that are difficult to
+              satisfy in general stochastic environments. More recent stochastic-control formulations introduce the
+              little-$q$ advantage-rate and martingale characterizations under diffusion dynamics, providing the right
+              continuous-time foundation but leaving optimization bottlenecked by coupled martingale objectives. Rather
+              than changing the policy class or reusing the same martingale enforcement in a different form, the
+              contribution here is a new <em>decoupled</em> learning scheme: estimate $q$ locally, update $V$ through a
+              Hamiltonian flow, and recover a practical single-critic actor-critic algorithm with both theory and strong
+              experiments.
+            </div>
+          </details>
+
+          <details class="rq-item">
+            <summary>Do these continuous-time ideas actually help in practice?</summary>
+            <div class="rq-panel">
+              Real-world systems such as markets, robots, and autonomous agents act at irregular times, while mainstream
+              RL still assumes a uniform environment step. Our experiments test precisely this irregular-time setting on
+              continuous control tasks and a minute-resolution trading environment, where CT-SAC and CT-TD3 outperform
+              prior continuous-time baselines and strong discrete-time
+              algorithms.
+            </div>
+          </details>
+        </section>
+
+        <br />
+        <section id="featured-media" class="feature-media-wrap">
+          <h3>Sample illustrations</h3>
+          <p>Below are short representative clips from the empirical study. The complete gallery are on the <a
+              href="gallery.html">Gallery page</a>.</p>
+
+          <div class="media-panel">
+            <h4>CT-SAC vs CPPO on Trading Task</h4>
+            <video class="media-embed-full" controls preload="metadata">
+              <source src="assets/media/trading_ct_sac_vs_cppo.mp4" type="video/mp4" />
+            </video>
+            <div class="caption">Two-week trading comparison under irregular decision times.</div>
+          </div>
+
+          <br />
+          <div class="media-panel">
+            <h4>Our algorithm CT-SAC against continuous baselines on Cheetah</h4>
+            <video class="media-embed-full" controls preload="metadata">
+              <source src="assets/media/cheetah-run_ct_sac_vs_continuous_top.mp4" type="video/mp4" />
+            </video>
+            <div class="caption">CT-SAC against continuous-time baselines under irregular-time control.</div>
+          </div>
+
+          <br />
+          <div class="media-panel">
+            <h4>Our algorithm CT-SAC against continuous baselines on Humanoid</h4>
+            <video class="media-embed-full" controls preload="metadata">
+              <source src="assets/media/humanoid-walk_ct_sac_vs_discrete_top.mp4" type="video/mp4" />
+            </video>
+            <div class="caption">CT-SAC against discrete-time baselines under irregular-time control.</div>
+          </div>
+        </section>
+
+        <br />
+        <h3 id="contributions">Contributions</h3>
+        <div class="kpi-grid">
+          <div class="kpi">
+            <div class="num">2</div>
+            <div class="lbl">Core algorithm variants: CT-SAC and CT-TD3</div>
+          </div>
+          <div class="kpi">
+            <div class="num">4</div>
+            <div class="lbl">Control benchmarks from DeepMind Control Suite</div>
+          </div>
+          <div class="kpi">
+            <div class="num">1</div>
+            <div class="lbl">Minute-level irregular-time trading environment</div>
+          </div>
+          <div class="kpi">
+            <div class="num">3</div>
+            <div class="lbl">Comprehensive experimental study settings</div>
+          </div>
+        </div>
+
+        <ol>
+          <li>
+            <strong>Decoupled continuous-time RL.</strong>
+            The framework separates learning the advantage-rate signal from updating the value function, replacing
+            martingale-coupled objectives with a simpler iterative scheme that remains compatible with off-policy
+            training.
+          </li>
+          <li>
+            <strong>Probabilistic convergence analysis.</strong>
+            The theory compares the Picard-Hamiltonian value update to a dynamic-programming semigroup, avoiding heavy
+            functional-analytic machinery while still controlling approximation error from sampled stochastic
+            trajectories.
+          </li>
+          <li>
+            <strong>Strong empirical performance under mixed time scales.</strong>
+            The method is evaluated on high-dimensional locomotion and a real trading task with irregular decision
+            intervals, where it outperforms prior continuous-time baselines and strong discrete-time algorithms.
+          </li>
+        </ol>
+
+        <br />
+        <h3 id="roadmap">Paper roadmap</h3>
+        <div class="card-grid">
+          <section class="card">
+            <h3>Formulation</h3>
+            <p>From discrete MDPs to controlled diffusions, generators, Hamiltonians, and the continuous-time
+              advantage-rate $q$-function.</p>
+            <p><a href="formulation.html">Open page →</a></p>
+          </section>
+          <section class="card">
+            <h3>Algorithm</h3>
+            <p>CT-SAC and CT-TD3, local $q^u$ estimation, Richardson correction, and the single-critic update $Q
+              \approx
+              V + q$.</p>
+            <p><a href="algorithm.html">Open page →</a></p>
+          </section>
+          <section class="card">
+            <h3>Theory</h3>
+            <p>Value convergence, $q$-convergence, algorithm convergence, and the random-time and regret extensions.
+            </p>
+            <p><a href="theory.html">Open page →</a></p>
+          </section>
+          <section class="card">
+            <h3>Experiments</h3>
+            <p>Irregular-time control and trading benchmarks, visualization, time complexity, and generalization to
+              regular-time evaluation.</p>
+            <p><a href="experiments.html">Open page →</a></p>
+          </section>
+          <section class="card">
+            <h3>Gallery</h3>
+            <p>Qualitative images and full video galleries for trading, irregular-time control, and transfer to
+              regular-time evaluation.</p>
+            <p><a href="gallery.html">Open page →</a></p>
+          </section>
+        </div>
+
+        <br />
+        <h3 id="closing">Takeaway</h3>
+        <p>
+          Our main claim is that continuous-time RL under irregular decision times becomes substantially easier to
+          optimize once learning the local action signal and updating the value function are separated. That
+          decoupling leads to a Hamiltonian-flow view of value learning, a practical single-critic implementation,
+          rigorous
+          convergence guarantees, and consistently strong performance on both continuous control benchmarks and a real
+          trading task.
+        </p>
+      </article>
+    </main>
+
+    <aside class="quicklinks">
+      <h3>On this page</h3>
+      <ul>
+        <li><a href="#why">Why continuous-time?</a></li>
+        <li><a href="#questions">Research questions</a></li>
+        <li><a href="#featured-media">Sample illustrations</a></li>
+        <li><a href="#contributions">Contributions</a></li>
+        <li><a href="#roadmap">Paper roadmap</a></li>
+        <li><a href="#closing">Takeaway</a></li>
+      </ul>
+    </aside>
+  </div>
+
+</body>
+
+</html>

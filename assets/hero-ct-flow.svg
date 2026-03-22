@@ -1,0 +1,192 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">Continuous-time reinforcement learning hero artwork</title>
+  <desc id="desc">Abstract artwork showing irregular decision times feeding into local q estimation, Hamiltonian flow on capital V, and a single-critic continuous-time actor-critic method.</desc>
+
+  <defs>
+    <linearGradient id="bg" x1="90" y1="70" x2="1110" y2="690" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0B1220"/>
+      <stop offset="1" stop-color="#101827"/>
+    </linearGradient>
+
+    <radialGradient id="glowBlue" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(320 250) rotate(21) scale(320 220)">
+      <stop stop-color="#3BA7FF" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#3BA7FF" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowViolet" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(665 230) rotate(-14) scale(300 220)">
+      <stop stop-color="#8D6CFF" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#8D6CFF" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowGreen" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(885 470) rotate(11) scale(280 190)">
+      <stop stop-color="#5BE39B" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#5BE39B" stop-opacity="0"/>
+    </radialGradient>
+
+    <linearGradient id="lineBlue" x1="145" y1="200" x2="590" y2="290" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#4FC3FF"/>
+      <stop offset="1" stop-color="#3B82F6"/>
+    </linearGradient>
+    <linearGradient id="lineViolet" x1="535" y1="270" x2="820" y2="240" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8B5CF6"/>
+      <stop offset="1" stop-color="#A78BFA"/>
+    </linearGradient>
+    <linearGradient id="lineGreen" x1="760" y1="356" x2="1024" y2="490" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#34D399"/>
+      <stop offset="1" stop-color="#10B981"/>
+    </linearGradient>
+
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#020617" flood-opacity="0.38"/>
+    </filter>
+    <filter id="softGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="8" result="b"/>
+      <feMerge>
+        <feMergeNode in="b"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <marker id="arrowB" markerWidth="14" markerHeight="14" refX="11" refY="7" orient="auto">
+      <path d="M0 0L14 7L0 14Z" fill="#60A5FA"/>
+    </marker>
+    <marker id="arrowV" markerWidth="14" markerHeight="14" refX="11" refY="7" orient="auto">
+      <path d="M0 0L14 7L0 14Z" fill="#A78BFA"/>
+    </marker>
+    <marker id="arrowG" markerWidth="14" markerHeight="14" refX="11" refY="7" orient="auto">
+      <path d="M0 0L14 7L0 14Z" fill="#34D399"/>
+    </marker>
+  </defs>
+
+  <rect width="1200" height="760" rx="26" fill="#080D16"/>
+  <rect x="38" y="36" width="1124" height="688" rx="28" fill="url(#bg)" stroke="rgba(255,255,255,0.10)"/>
+
+  <ellipse cx="320" cy="250" rx="320" ry="220" fill="url(#glowBlue)"/>
+  <ellipse cx="665" cy="230" rx="300" ry="220" fill="url(#glowViolet)"/>
+  <ellipse cx="885" cy="470" rx="280" ry="190" fill="url(#glowGreen)"/>
+
+  <g stroke="#1F2A3D" stroke-width="1.3" opacity="0.85">
+    <path d="M84 646C190 585 320 582 450 640"/>
+    <path d="M784 103C892 62 1012 81 1106 149"/>
+    <ellipse cx="191" cy="123" rx="120" ry="48"/>
+    <ellipse cx="1040" cy="626" rx="100" ry="42"/>
+    <ellipse cx="109" cy="515" rx="84" ry="30"/>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="86" y="118" width="328" height="356" rx="28" fill="#0D1524" stroke="#22314A"/>
+
+    <g stroke="#2B3A56" stroke-width="3" stroke-linecap="round">
+      <line x1="128" y1="223" x2="374" y2="223"/>
+      <line x1="128" y1="303" x2="374" y2="303"/>
+      <line x1="128" y1="383" x2="374" y2="383"/>
+    </g>
+
+    <g fill="#E5F2FF">
+      <circle cx="144" cy="223" r="6"/>
+      <circle cx="179" cy="223" r="6"/>
+      <circle cx="204" cy="223" r="6"/>
+      <circle cx="274" cy="223" r="6"/>
+      <circle cx="355" cy="223" r="6"/>
+      <circle cx="144" cy="303" r="6"/>
+      <circle cx="204" cy="303" r="6"/>
+      <circle cx="232" cy="303" r="6"/>
+      <circle cx="247" cy="303" r="6"/>
+      <circle cx="333" cy="303" r="6"/>
+      <circle cx="144" cy="383" r="6"/>
+      <circle cx="166" cy="383" r="6"/>
+      <circle cx="188" cy="383" r="6"/>
+      <circle cx="243" cy="383" r="6"/>
+      <circle cx="271" cy="383" r="6"/>
+      <circle cx="362" cy="383" r="6"/>
+    </g>
+
+    <path d="M128 255C154 242 178 264 208 251C237 238 262 266 292 252C323 237 348 260 374 247" stroke="#53B4FF" stroke-width="3.5" stroke-linecap="round" fill="none" opacity="0.9"/>
+    <path d="M128 335C154 319 176 347 205 332C232 318 256 344 288 330C320 315 345 336 374 322" stroke="#89A9FF" stroke-width="3.5" stroke-linecap="round" fill="none" opacity="0.82"/>
+    <path d="M128 415C154 398 177 427 206 409C236 391 262 420 294 404C324 389 348 412 374 397" stroke="#6EE7B7" stroke-width="3.5" stroke-linecap="round" fill="none" opacity="0.82"/>
+
+    <g opacity="0.95">
+      <circle cx="144" cy="510" r="4" fill="#60A5FA"/>
+      <circle cx="188" cy="510" r="4" fill="#60A5FA"/>
+      <circle cx="278" cy="510" r="4" fill="#93C5FD"/>
+      <circle cx="360" cy="510" r="4" fill="#BFDBFE"/>
+      <line x1="144" y1="510" x2="188" y2="510" stroke="#2D4770" stroke-width="3" stroke-linecap="round"/>
+      <line x1="188" y1="510" x2="278" y2="510" stroke="#2D4770" stroke-width="3" stroke-linecap="round"/>
+      <line x1="278" y1="510" x2="360" y2="510" stroke="#2D4770" stroke-width="3" stroke-linecap="round"/>
+    </g>
+  </g>
+
+  <g filter="url(#shadow)">
+    <path d="M520 144C581 101 708 101 772 146C832 188 841 287 790 343C738 399 626 419 554 384C482 349 456 230 520 144Z" fill="#111B2E" stroke="#32476E"/>
+    <g filter="url(#softGlow)">
+      <path d="M560 182C609 149 706 149 752 186C794 220 799 288 761 326C721 364 636 379 581 352C526 324 508 246 560 182Z" fill="rgba(61,153,255,0.08)" stroke="#2F7FEA"/>
+    </g>
+
+    <g stroke="#4465A6" stroke-width="2.4" opacity="0.95">
+      <path d="M575 269L628 221L694 244L737 206"/>
+      <path d="M575 269L621 316L694 296L739 337"/>
+      <path d="M628 221L621 316"/>
+      <path d="M694 244L694 296"/>
+      <path d="M628 221L694 244"/>
+      <path d="M621 316L694 296"/>
+    </g>
+    <g fill="#DCEBFF">
+      <circle cx="575" cy="269" r="8"/>
+      <circle cx="628" cy="221" r="8"/>
+      <circle cx="621" cy="316" r="8"/>
+      <circle cx="694" cy="244" r="8"/>
+      <circle cx="694" cy="296" r="8"/>
+      <circle cx="737" cy="206" r="8"/>
+      <circle cx="739" cy="337" r="8"/>
+    </g>
+
+    <text x="657" y="283" text-anchor="middle" fill="#F3F7FF" font-size="44" font-family="Georgia, Times New Roman, serif" font-weight="700">q</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="796" y="148" width="290" height="170" rx="28" fill="#101825" stroke="#2E3F63"/>
+    <circle cx="941" cy="228" r="56" stroke="#2D5CA8" stroke-width="6" opacity="0.55"/>
+    <path d="M892 224C898 184 934 160 970 170C1007 180 1028 215 1017 251" stroke="#8B5CF6" stroke-width="7" stroke-linecap="round" marker-end="url(#arrowV)"/>
+    <path d="M990 235C982 274 948 297 912 289C877 282 854 251 862 215" stroke="#34D399" stroke-width="7" stroke-linecap="round" marker-end="url(#arrowG)"/>
+    <text x="941" y="237" text-anchor="middle" fill="#F6FAFF" font-size="30" font-family="Georgia, Times New Roman, serif" font-weight="700">V</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="594" y="466" width="408" height="122" rx="30" fill="#0F1824" stroke="#2A3E5F"/>
+    <rect x="629" y="494" width="338" height="64" rx="22" fill="#121F17" stroke="#2E7D5A"/>
+    <text x="798" y="536" text-anchor="middle" fill="#F1FFF8" font-size="40" font-family="Georgia, Times New Roman, serif" font-weight="700">Q ≈ V + q</text>
+  </g>
+
+  <path d="M415 288C456 288 475 286 514 278" stroke="url(#lineBlue)" stroke-width="6" stroke-linecap="round" marker-end="url(#arrowB)"/>
+  <path d="M766 246C787 238 794 236 817 229" stroke="url(#lineViolet)" stroke-width="6" stroke-linecap="round" marker-end="url(#arrowV)"/>
+  <path d="M940 320C938 375 900 413 848 451" stroke="url(#lineGreen)" stroke-width="6" stroke-linecap="round" marker-end="url(#arrowG)"/>
+  <path d="M703 400C734 425 754 440 781 459" stroke="#6EE7B7" stroke-width="5" stroke-linecap="round" opacity="0.75"/>
+
+  <!-- Labels moved away from artwork -->
+  <g filter="url(#shadow)">
+    <rect x="104" y="82" width="160" height="42" rx="21" fill="#122034" stroke="#274567"/>
+    <text x="184" y="109" text-anchor="middle" fill="#D8EBFF" font-size="18" font-family="Inter, Arial, sans-serif" font-weight="700">Irregular time</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="592" y="92" width="132" height="42" rx="21" fill="#172139" stroke="#35538A"/>
+    <text x="658" y="119" text-anchor="middle" fill="#E2EEFF" font-size="18" font-family="Inter, Arial, sans-serif" font-weight="700">local q</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="880" y="102" width="118" height="42" rx="21" fill="#171D31" stroke="#485883"/>
+    <text x="939" y="129" text-anchor="middle" fill="#EEE8FF" font-size="18" font-family="Inter, Arial, sans-serif" font-weight="700">V flow</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="838" y="616" width="196" height="42" rx="21" fill="#122119" stroke="#2E6D53"/>
+    <text x="936" y="643" text-anchor="middle" fill="#E8FFF3" font-size="18" font-family="Inter, Arial, sans-serif" font-weight="700">CT-SAC / CT-TD3</text>
+  </g>
+
+  <g opacity="0.9">
+    <circle cx="506" cy="96" r="2.8" fill="#4FC3FF"/>
+    <circle cx="563" cy="84" r="2.2" fill="#A78BFA"/>
+    <circle cx="1012" cy="112" r="2.8" fill="#34D399"/>
+    <circle cx="1092" cy="246" r="2.4" fill="#60A5FA"/>
+    <circle cx="1107" cy="520" r="3" fill="#6EE7B7"/>
+    <circle cx="89" cy="88" r="2.4" fill="#93C5FD"/>
+  </g>
+</svg>

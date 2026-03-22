@@ -1,0 +1,861 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Experiments · Continuous-Time RL</title>
+  <meta name="description"
+    content="Irregular-time control and trading results, galleries, ablations, runtime, and transfer to regular-time evaluation." />
+  <link rel="stylesheet" href="assets/site.css" />
+  <script defer src="assets/site.js"></script>
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$']] },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <style>
+    .hero-figure img,
+    .figure-box img,
+    .gallery-card img {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 18px;
+    }
+
+    .hero-figure,
+    .figure-box,
+    .gallery-card,
+    .metrics-grid .card,
+    .experiments-note {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      padding: 18px;
+    }
+
+    .section-stack>*+* {
+      margin-top: 18px;
+    }
+
+    .figure-grid-2,
+    .figure-grid-3,
+    .gallery-grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .figure-grid-2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .figure-grid-3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .gallery-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .gallery-card h4,
+    .figure-box h4 {
+      margin: 0 0 10px;
+    }
+
+    .caption,
+    .subtle,
+    .path-hint {
+      color: rgba(255, 255, 255, 0.72);
+      font-size: 0.95rem;
+    }
+
+    .path-hint code {
+      font-size: 0.9rem;
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 14px;
+    }
+
+    .metrics-grid .num {
+      font-size: 1.9rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .mini-kicker {
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 0.78rem;
+      color: rgba(255, 255, 255, 0.56);
+    }
+
+    .figure-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 14px;
+      margin-bottom: 10px;
+    }
+
+    .exp-tabs {
+      display: grid;
+      gap: 18px;
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .pill {
+      padding: 7px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 0.92rem;
+    }
+
+    .score-best {
+      font-weight: 700;
+      color: #fca5a5;
+    }
+
+    .score-second {
+      font-weight: 700;
+      color: #93c5fd;
+    }
+
+    .score-third {
+      font-weight: 700;
+      color: #86efac;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 18px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 760px;
+    }
+
+    th,
+    td {
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    thead th {
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    details.accordion {
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 18px;
+      padding: 14px 16px;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    details.accordion summary {
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    details.accordion>div {
+      margin-top: 14px;
+    }
+
+    .math-block {
+      overflow-x: auto;
+      padding: 8px 0;
+    }
+
+    @media (max-width: 980px) {
+
+      .figure-grid-2,
+      .figure-grid-3,
+      .gallery-grid,
+      .metrics-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="header">
+    <div class="topbar">
+      <a class="brand" href="index.html"><span class="dot"></span><span>Continuous-Time RL</span></a>
+      <nav class="primary-nav">
+        <a href="index.html">Home</a>
+        <a href="formulation.html">Formulation</a>
+        <a href="algorithm.html">Algorithm</a>
+
+        <div class="nav-dropdown">
+          <a href="theory.html" class="nav-dropdown-toggle">Theory</a>
+          <div class="nav-dropdown-menu">
+            <a href="theory/value-convergence.html">Value convergence</a>
+            <a href="theory/q-convergence.html">q-convergence</a>
+            <a href="theory/algorithm-convergence.html">Algorithm convergence</a>
+            <a href="theory/random-time-and-regret.html">Random time &amp; regret</a>
+          </div>
+        </div>
+
+        <a href="experiments.html">Experiments</a>
+        <a href="gallery.html">Gallery</a>
+      </nav>
+      <a class="github-btn" href="https://github.com/mpnguyen2/ct-rl">Codebase</a>
+    </div>
+  </header>
+
+  <div class="page-shell">
+    <main class="content">
+      <article class="article section-stack">
+        <h2 id="overview">Experiments</h2>
+        <p class="section-lead">We move beyond fixed-step simulated SDE benchmarks and asks the
+          practical question behind the paper: Do continuous-time methods help when trajectories truly mix small and
+          large decision durations within the same rollout?</p>
+
+        <div class="hero-figure">
+          <div class="figure-header figure-header--hero">
+            <div>
+              <div class="mini-kicker">All algorithms at a glance</div>
+              <h3>Irregular-time control</h3>
+            </div>
+          </div>
+
+          <img src="assets/images/all_algorithms_control_tasks.png"
+            alt="Evaluation returns for all algorithms on control tasks over 12 seeds." />
+
+          <div class="caption">
+            Comparison across all algorithms on the control suite under the irregular-time setting.
+          </div>
+        </div>
+
+        <div class="metrics-grid">
+          <section class="card">
+            <div class="num">4</div>
+            <div>DeepMind Control Suite tasks</div>
+          </section>
+          <section class="card">
+            <div class="num">1</div>
+            <div>Minute-resolution irregular-time trading environment</div>
+          </section>
+          <section class="card">
+            <div class="num">500+</div>
+            <div>Hours of compute used throughout the study</div>
+          </section>
+          <section class="card">
+            <div class="num">3</div>
+            <div>empirical settings: baseline comparisons, increment modeling, transfer learning to regular timing</div>
+          </section>
+        </div>
+
+        <h3 id="tasks">Tasks and baselines</h3>
+        <p>
+          Across all tasks, the agent acts at event times $t_0 &lt; t_1 &lt; \cdots$ with holding times $u_k :=
+          t_{k+1}-t_k$ that mix between small and large timesteps within the same rollout. Trajectories therefore
+          contain many short "micro-steps" interleaved with occasional larger jumps. This is harder than
+          fixed-step training because critics must generalize across non-aligned time increments rather than fit a
+          single nominal step size.
+        </p>
+        <div class="card-grid">
+          <section class="card">
+            <h3>Control tasks</h3>
+            <p>Four DeepMind Control Suite benchmarks: <code>cheetah-run</code>, <code>walker-run</code>,
+              <code>humanoid-walk</code>, and <code>quadruped-run</code>. Irregular timing is especially important for
+              humanoid and quadruped locomotion, where stability depends on timely corrective actions.
+            </p>
+          </section>
+          <section class="card">
+            <h3>Trading</h3>
+            <p>A minute-resolution Alpaca-based environment with four industry sectors, five large-cap tickers per
+              sector, two-week episodes, action-dependent transaction costs, and holding times in $[1,20]$ minutes.
+              Rewards equal realized profit over the next holding interval.</p>
+          </section>
+          <section class="card">
+            <h3>Baselines</h3>
+            <p>Continuous-time baselines: q-Learning with martingale enforcement and policy-gradient CPPO. Discrete-time
+              baselines: SAC, TD3, TRPO, and PPO. Each method is tuned, evaluated periodically, and then aggregated over
+              12 seeds.</p>
+          </section>
+        </div>
+
+        <div class="experiments-note">
+          <strong>Trading split.</strong> The model trains on Q3 2023 through Q2 2025 and evaluates on a fixed set of Q3
+          2025 episodes to avoid temporal leakage and keep all methods on the same market paths.
+        </div>
+
+        <h3 id="figures-main">Bencmarking plots</h3>
+
+        <div class="figure-box">
+          <h4>Continuous-time baselines</h4>
+          <img src="assets/images/continuous_algorithms_control_tasks.png"
+            alt="Continuous-time baseline comparisons on control tasks." />
+          <div class="caption">Evaluation returns for 4 continuous-time algorithms on
+            control tasks over 12 seeds.</div>
+        </div>
+
+        <div class="figure-box">
+          <h4>Discrete-time baselines</h4>
+          <img src="assets/images/discrete_algorithms_control_tasks.png"
+            alt="Discrete-time baseline comparisons on control tasks." />
+          <div class="caption">Evaluation returns for CT-SAC against 4 discrete-time algorithms on control tasks over
+            12 seeds.</div>
+        </div>
+
+        <div class="figure-box">
+          <h4>Trading performance</h4>
+          <img src="assets/images/trading_task_continuous_and_discrete.png"
+            alt="Trading task comparison across continuous-time and discrete-time baselines."
+            style="width:min(50%, 760px); display:block; margin:0.75rem auto 0; height:auto;" />
+          <div class="caption">Two-week evaluation returns for CT-SAC and CT-TD3 against six other algorithms on the
+            trading task.</div>
+        </div>
+
+        <h3 id="results">Result summary</h3>
+        <div class="card-grid">
+          <section class="card">
+            <h3>Continuous-time baselines</h3>
+            <p>CT-SAC and CT-TD3 are the strongest continuous-time methods across both the control suite and the trading
+              task. This is due to optimization structure of the decoupled update compared with coupled martingale
+              objectives.</p>
+          </section>
+          <section class="card">
+            <h3>Discrete-time baselines</h3>
+            <p>CT-SAC also outperforms leading fixed-step algorithms. Under mixed holding times, discrete-time critics
+              can degrade because they must absorb multiple time scales into one fixed-step target.</p>
+          </section>
+          <section class="card">
+            <h3>Trading</h3>
+            <p>Continuous-time modeling appears especially relevant in trading. CPPO becomes more competitive than it is
+              on locomotion benchmarks, but CT-SAC remains the strongest overall method.</p>
+          </section>
+        </div>
+
+        <div class="callout">
+          <strong>Headline.</strong> Starting from $\$100{,}000$, CT-SAC earns about $\$3{,}500$ profit every two
+          weeks on average and about $\$21{,}000$ across the Q3 2025 evaluation episodes, nearly doubling the
+          second-best method.
+        </div>
+
+        <h3 id="transfer">Generalization to regular-time evaluation</h3>
+        <p>We also tests whether policies trained under irregular decision times transfer back to the standard
+          regular-time setting. This is a strong check that the learned policy captures the underlying control structure
+          rather than overfitting to one irregular schedule.</p>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Task</th>
+                <th>CT-SAC</th>
+                <th>SAC</th>
+                <th>TD3</th>
+                <th>PPO</th>
+                <th>TRPO</th>
+                <th>q-Learning</th>
+                <th>CPPO</th>
+                <th>CT-TD3</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Cheetah</strong></td>
+                <td class="score-best">605.05</td>
+                <td class="score-third">455.74</td>
+                <td>404.18</td>
+                <td>124.45</td>
+                <td>104.46</td>
+                <td>208.04</td>
+                <td>102.03</td>
+                <td class="score-second">513.39</td>
+              </tr>
+              <tr>
+                <td><strong>Walker</strong></td>
+                <td class="score-best">610.03</td>
+                <td>403.44</td>
+                <td class="score-third">509.23</td>
+                <td>73.06</td>
+                <td>64.55</td>
+                <td>70.94</td>
+                <td>25.04</td>
+                <td class="score-second">512.30</td>
+              </tr>
+              <tr>
+                <td><strong>Humanoid</strong></td>
+                <td class="score-best">404.64</td>
+                <td class="score-third">77.14</td>
+                <td>2.27</td>
+                <td>1.34</td>
+                <td>1.35</td>
+                <td>1.90</td>
+                <td>1.42</td>
+                <td class="score-second">356.90</td>
+              </tr>
+              <tr>
+                <td><strong>Quadruped</strong></td>
+                <td class="score-best">530.13</td>
+                <td class="score-second">328.30</td>
+                <td class="score-third">325.87</td>
+                <td>159.52</td>
+                <td>121.84</td>
+                <td>192.86</td>
+                <td>125.30</td>
+                <td>284.23</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 id="ablations">Ablations</h3>
+        <p>We also reports top/second/third configurations for each method and task.</p>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Task</th>
+                <th>CT-SAC top</th>
+                <th>Best discrete baseline top</th>
+                <th>Best continuous baseline top</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Cheetah</strong></td>
+                <td class="score-best">934.76</td>
+                <td class="score-second">730.12 (TD3)</td>
+                <td class="score-third">705.86 (CT-TD3)</td>
+              </tr>
+              <tr>
+                <td><strong>Walker</strong></td>
+                <td class="score-best">1035.52</td>
+                <td class="score-second">680.08 (SAC)</td>
+                <td class="score-third">596.50 (CT-TD3)</td>
+              </tr>
+              <tr>
+                <td><strong>Humanoid</strong></td>
+                <td class="score-best">386.75</td>
+                <td class="score-third">73.39 (SAC)</td>
+                <td class="score-second">337.23 (CT-TD3)</td>
+              </tr>
+              <tr>
+                <td><strong>Quadruped</strong></td>
+                <td class="score-best">959.75</td>
+                <td class="score-second">522.63 (TD3)</td>
+                <td class="score-third">484.25 (CT-TD3)</td>
+              </tr>
+              <tr>
+                <td><strong>Trading</strong></td>
+                <td class="score-best">37.72</td>
+                <td class="score-third">25.59 (SAC)</td>
+                <td class="score-second">23.46 (CPPO)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <details class="accordion">
+          <summary>Full ablation tables</summary>
+          <div class="section-stack">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Task</th>
+                    <th>CT-SAC top / second / third</th>
+                    <th>SAC top / second / third</th>
+                    <th>TD3 top / second / third</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>Cheetah</strong></td>
+                    <td>934.76 / 863.45 / 807.19</td>
+                    <td>701.88 / 680.30 / 605.63</td>
+                    <td>730.12 / 694.15 / 692.81</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Walker</strong></td>
+                    <td>1035.52 / 928.26 / 817.28</td>
+                    <td>680.08 / 560.98 / 522.85</td>
+                    <td>385.73 / 286.09 / 191.74</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Humanoid</strong></td>
+                    <td>386.75 / 379.75 / 371.75</td>
+                    <td>73.39 / 39.28 / 2.12</td>
+                    <td>2.28 / 2.24 / 2.11</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Quadruped</strong></td>
+                    <td>959.75 / 958.44 / 829.41</td>
+                    <td>423.33 / 314.77 / 284.00</td>
+                    <td>522.63 / 518.37 / 464.95</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Trading</strong></td>
+                    <td>37.72 / 33.09 / 31.98</td>
+                    <td>25.59 / 21.04 / 13.77</td>
+                    <td>2.67 / -5.46 / -9.46</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Task</th>
+                    <th>CT-SAC top / second / third</th>
+                    <th>TRPO top / second / third</th>
+                    <th>PPO top / second / third</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>Cheetah</strong></td>
+                    <td>934.76 / 863.45 / 807.19</td>
+                    <td>210.10 / 190.51 / 170.73</td>
+                    <td>235.61 / 208.42 / 206.70</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Walker</strong></td>
+                    <td>1035.52 / 928.26 / 817.28</td>
+                    <td>126.73 / 119.95 / 114.90</td>
+                    <td>129.94 / 120.28 / 118.08</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Humanoid</strong></td>
+                    <td>386.75 / 379.75 / 371.75</td>
+                    <td>1.39 / 1.33 / 1.30</td>
+                    <td>1.18 / 1.17 / 1.11</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Quadruped</strong></td>
+                    <td>959.75 / 958.44 / 829.41</td>
+                    <td>206.24 / 178.01 / 135.29</td>
+                    <td>214.13 / 208.47 / 202.72</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Trading</strong></td>
+                    <td>37.72 / 33.09 / 31.98</td>
+                    <td>9.17 / -3.36 / -4.77</td>
+                    <td>12.76 / 11.94 / 4.19</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Task</th>
+                    <th>CT-SAC top / second / third</th>
+                    <th>CPPO top / second / third</th>
+                    <th>q-Learning top / second / third</th>
+                    <th>CT-TD3 top / second / third</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>Cheetah</strong></td>
+                    <td>934.76 / 863.45 / 807.19</td>
+                    <td>174.50 / 168.64 / 145.92</td>
+                    <td>348.61 / 328.69 / 272.00</td>
+                    <td>705.86 / 457.24 / 268.61</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Walker</strong></td>
+                    <td>1035.52 / 928.26 / 817.28</td>
+                    <td>51.77 / 44.24 / 42.04</td>
+                    <td>119.78 / 94.79 / 74.67</td>
+                    <td>596.50 / 578.19 / 567.22</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Humanoid</strong></td>
+                    <td>386.75 / 379.75 / 371.75</td>
+                    <td>1.16 / 1.08 / 1.04</td>
+                    <td>1.81 / 1.59 / 1.28</td>
+                    <td>337.23 / 326.61 / 295.94</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Quadruped</strong></td>
+                    <td>959.75 / 958.44 / 829.41</td>
+                    <td>160.19 / 159.80 / 159.05</td>
+                    <td>339.49 / 299.32 / 216.92</td>
+                    <td>484.25 / 455.86 / 345.87</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Trading</strong></td>
+                    <td>37.72 / 33.09 / 31.98</td>
+                    <td>23.46 / 23.37 / 22.32</td>
+                    <td>12.22 / 2.37 / -39.94</td>
+                    <td>6.53 / -0.11 / -6.22</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </details>
+
+        <h3 id="increment">Increment modeling</h3>
+        <p>We tests a reward-shaping variant, $r_t^{\text{new}}=\Delta_t r_t$, to see whether scaling
+          rewards by observed time increments helps under non-uniform durations. It <strong>does not</strong>. In most
+          cases, performance is worse or statistically indistinguishable from the unshaped discrete-time baseline.</p>
+        <div class="figure-box">
+          <h4>Control tasks</h4>
+          <img src="assets/images/increment_modeling_control_tasks.png" alt="Increment modeling on control tasks." />
+          <div class="caption">CT-SAC versus SAC and its reward-shaping variant on control tasks.</div>
+        </div>
+        <div class="figure-box">
+          <h4>Trading task</h4>
+          <img src="assets/images/increment_modeling_trading.png" alt="Increment modeling on trading task."
+            style="width:min(50%, 760px); display:block; margin:0.75rem auto 0; height:auto;" />
+          <div class="caption">CT-SAC versus SAC and its reward-shaping variant on the trading task.</div>
+        </div>
+
+
+        <h3 id="details">Irregular time statistics</h3>
+        <p>Below are the time statistics for the irregular time settings on each task.</p>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Task</th>
+                <th>$\Delta t_{\text{physics}}$</th>
+                <th>$\Delta t_{\min}$</th>
+                <th>$\Delta t_{\max}$</th>
+                <th>% small</th>
+                <th>% large</th>
+                <th>% avg</th>
+                <th>$T_{\max}$</th>
+                <th>steps / episode</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Cheetah</strong></td>
+                <td>0.0020</td>
+                <td>0.002</td>
+                <td>0.030</td>
+                <td>89.1%</td>
+                <td>9.9%</td>
+                <td>1.0%</td>
+                <td>10</td>
+                <td>1200-2000</td>
+              </tr>
+              <tr>
+                <td><strong>Walker</strong></td>
+                <td>0.0025</td>
+                <td>0.005</td>
+                <td>0.075</td>
+                <td>89.1%</td>
+                <td>9.9%</td>
+                <td>1.0%</td>
+                <td>25</td>
+                <td>1200-2000</td>
+              </tr>
+              <tr>
+                <td><strong>Humanoid</strong></td>
+                <td>0.0050</td>
+                <td>0.010</td>
+                <td>0.040</td>
+                <td>40.0%</td>
+                <td>40.0%</td>
+                <td>20.0%</td>
+                <td>25</td>
+                <td>800-1000</td>
+              </tr>
+              <tr>
+                <td><strong>Quadruped</strong></td>
+                <td>0.0050</td>
+                <td>0.005</td>
+                <td>0.050</td>
+                <td>89.1%</td>
+                <td>9.9%</td>
+                <td>1.0%</td>
+                <td>20</td>
+                <td>1200-2000</td>
+              </tr>
+              <tr>
+                <td><strong>Trading</strong></td>
+                <td>1</td>
+                <td>1</td>
+                <td>11</td>
+                <td>89.1%</td>
+                <td>9.9%</td>
+                <td>1.0%</td>
+                <td>4000</td>
+                <td>1600-2100</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="pill-row">
+          <span class="pill">many micro-steps</span>
+          <span class="pill">occasional large jumps</span>
+          <span class="pill">non-aligned trajectories</span>
+          <span class="pill">single nominal step is insufficient</span>
+        </div>
+
+        <h3 id="runtime">Runtime, complexity, and infrastructure</h3>
+        <p>The runtime appendix shows that CT-SAC is in the same rough training-cost range as SAC, and CT-TD3 is
+          comparable to TD3. The continuous-time modifications mainly change target construction, not the overall
+          asymptotic structure of batched actor-critic training.</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Task</th>
+                <th>CT-SAC</th>
+                <th>SAC</th>
+                <th>TD3</th>
+                <th>TRPO</th>
+                <th>PPO</th>
+                <th>CPPO</th>
+                <th>q-Learning</th>
+                <th>CT-TD3</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Cheetah</strong></td>
+                <td>10.62 ± 0.53</td>
+                <td>6.29 ± 0.04</td>
+                <td>3.98 ± 0.05</td>
+                <td>0.44 ± 0.07</td>
+                <td><strong>0.29 ± 0.07</strong></td>
+                <td>0.57 ± 0.06</td>
+                <td>9.12 ± 0.17</td>
+                <td>4.60 ± 0.04</td>
+              </tr>
+              <tr>
+                <td><strong>Walker</strong></td>
+                <td>9.69 ± 0.83</td>
+                <td>8.90 ± 0.54</td>
+                <td>4.57 ± 0.24</td>
+                <td><strong>0.40 ± 0.00</strong></td>
+                <td>0.41 ± 0.07</td>
+                <td>0.61 ± 0.04</td>
+                <td>5.59 ± 0.08</td>
+                <td>4.68 ± 0.09</td>
+              </tr>
+              <tr>
+                <td><strong>Humanoid</strong></td>
+                <td>8.30 ± 0.50</td>
+                <td>6.02 ± 0.09</td>
+                <td>3.87 ± 0.06</td>
+                <td>0.82 ± 0.01</td>
+                <td><strong>0.48 ± 0.02</strong></td>
+                <td>1.01 ± 0.02</td>
+                <td>5.07 ± 0.14</td>
+                <td>5.32 ± 0.16</td>
+              </tr>
+              <tr>
+                <td><strong>Quadruped</strong></td>
+                <td>8.21 ± 0.41</td>
+                <td>6.49 ± 0.04</td>
+                <td>4.66 ± 0.04</td>
+                <td>0.40 ± 0.02</td>
+                <td>0.41 ± 0.01</td>
+                <td><strong>0.36 ± 0.01</strong></td>
+                <td>6.87 ± 0.32</td>
+                <td>2.65 ± 1.91</td>
+              </tr>
+              <tr>
+                <td><strong>Trading</strong></td>
+                <td>8.42 ± 0.11</td>
+                <td>7.42 ± 0.07</td>
+                <td>4.90 ± 0.08</td>
+                <td>0.81 ± 0.00</td>
+                <td><strong>0.52 ± 0.01</strong></td>
+                <td>0.89 ± 0.17</td>
+                <td>6.38 ± 0.10</td>
+                <td>5.44 ± 0.08</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <details class="accordion">
+          <summary>Compute resources, statistical testing, and reproducibility notes</summary>
+          <div class="section-stack">
+            <p><strong>Time complexity.</strong> If $N$ is the number of environment interaction steps, $f$ is the
+              update frequency, and $d$ is the number of gradient steps per update event, total update work scales as
+              $\mathcal O(Nd/f)$. CT-SAC adds time-aware target computations but does not change the asymptotic update
+              pattern relative to SAC.</p>
+            <p><strong>Statistical testing.</strong> We also conduct Welch's t-test and paired tests over the same
+              12 seeds across methods. These tests support that CT-SAC outperforms the baselines with statistically
+              significant differences in the majority of settings.</p>
+            <p><strong>Compute resources.</strong> The experiments used a mixture of CPU-only and GPU-accelerated HPC
+              nodes, including high-core-count CPU systems and NVIDIA GPU nodes. Each run used a single node.</p>
+            <p><strong>Codebase.</strong> Full hyperparameter search spaces, significant-testing outputs, and
+              reproducibility instructions are available in the <a
+                href="https://github.com/mpnguyen2/ct-rl">Codebase</a>.</p>
+          </div>
+        </details>
+
+        <h3 id="appendix-galleries">Gallery page</h3>
+        <p>Additional images and videos are available at the <a href="gallery.html">gallery page</a>:</p>
+
+        <div class="card-grid">
+          <section class="card">
+            <h3>Trading media</h3>
+            <p>Qualitative trading plots together with CT-SAC, SAC, CPPO, and side-by-side trading videos.</p>
+            <p><a href="gallery.html#trading-gallery">Open trading gallery →</a></p>
+          </section>
+          <section class="card">
+            <h3>Irregular-time control</h3>
+            <p>Per-task qualitative images and top-mean rollout videos against both continuous-time and discrete-time
+              baselines.</p>
+            <p><a href="gallery.html#irregular-control">Open irregular-time gallery →</a></p>
+          </section>
+          <section class="card">
+            <h3>Regular-time transfer</h3>
+            <p>Regular-time evaluation media for policies trained under irregular time steps, both as static images and
+              videos.</p>
+            <p><a href="gallery.html#regular-control">Open regular-time gallery →</a></p>
+          </section>
+        </div>
+      </article>
+    </main>
+
+
+
+    <aside class="quicklinks">
+      <h3>On this page</h3>
+      <ul>
+        <li><a href="#tasks">Tasks and baselines</a></li>
+        <li><a href="#figures-main">Bencmarking plots</a></li>
+        <li><a href="#results">Result summary</a></li>
+        <li><a href="#transfer">Generalization to regular-time</a></li>
+        <li><a href="#ablations">Ablations</a></li>
+        <li><a href="#increment">Increment modeling</a></li>
+        <li><a href="#details">Irregular time statistics</a></li>
+        <li><a href="#runtime">Runtime & infrastructure</a></li>
+        <li><a href="#appendix-galleries">Gallery page</a></li>
+      </ul>
+    </aside>
+  </div>
+
+</body>
+
+</html>
